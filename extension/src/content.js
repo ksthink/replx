@@ -58,7 +58,8 @@
   // ---------- CSS ----------
   function buildCss() {
     if (!isActive()) return '';
-    const guard = ':not([data-chh-show]):not(pre *):not(code *):not(textarea)';
+    // 기사 제목(h1)이나 본문을 품은 요소는 규칙에 걸려도 숨기지 않습니다(규칙이 너무 넓게 잡힌 경우의 안전장치).
+    const guard = `:not([data-chh-show]):not(pre *):not(code *):not(textarea):not(:has(h1, ${self.CHH_DETECTOR.ARTICLE_SEL}))`;
     const hideSel = [siteSelectors(), ...userSelectors()].filter(Boolean).join(', ');
     let css = '';
     // :is()는 잘못된 선택자가 섞여도 나머지를 살려 둡니다.
@@ -92,6 +93,7 @@
   function mark(el, kind) {
     if (el.hasAttribute('data-chh') || el.closest('[data-chh]')) return false;
     if (isAllowed(el) || userIsTypingIn(el)) return false;
+    if (el.querySelector(`h1, ${self.CHH_DETECTOR.ARTICLE_SEL}`)) return false; // 본문을 품은 요소는 숨기지 않음
     el.setAttribute('data-chh', kind);
     return true;
   }

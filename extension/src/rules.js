@@ -23,7 +23,7 @@ self.CHH_RULES = {
   "www.dailykos.com": "#react-comments, .dk-social-count, .comment-counts-btn, .stories-grid__story__inner__comment-count.story-associations__comment-count",
   "www.dailymail.co.uk": ".comments-count, .share-count, .comments-link, #reader-comments",
   "www.dailywire.com": "div:has(+ .cmt-ads), .cmt-ads, .insticator-product-group, .insticator-counter",
-  "v.daum.net": ".box_cmt, .btn_cmt",
+  "v.daum.net": ".box_cmt, .btn_cmt, .comment_view",
   "gall.dcinside.com": ".view_comment",
   "www.deviantart.com": "a[href$='#comments'], button[title='Comments'], ._1e_xC._1ujMm:nth-child(2), #comments, #comments + div",
   "dev.to": ".crayons-story__details > a:nth-child(2), #comments",

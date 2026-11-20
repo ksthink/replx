@@ -36,6 +36,8 @@ async def main():
             await expect_page(page, "news.html", {"article": False, ".quotes": False, ".related": False, "pre": False, ".share": False})
             await expect_page(page, "dynamic.html", {".comments": True, "h1": False}, wait=3500)
             await expect_page(page, "demo-picker.html", {".zz": False, ".other": False})
+            # 다음 뉴스 구조: 규칙(v.daum.net 아님, localhost)이 없으니 자동 탐지가 댓글만 골라야 함
+            await expect_page(page, "daum-like.html", {".comment_view": True, ".article_view": False, ".tit_view": False, ".main-content": False}, wait=3000)
 
             # iframe 안의 댓글
             await page.goto(BASE + "cafe.html")

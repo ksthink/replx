@@ -10,6 +10,10 @@
   const AUTHOR_RE = /(nick|author|writer|user|member|profile|avatar|name)/i;
   const COMMENT_IFRAME = 'iframe[src*="disqus"],iframe[src*="livere"],iframe[src*="giscus"],iframe[src*="utteranc"],iframe[title*="comment" i],iframe[id*="comment" i]';
 
+  // 기사·게시글 본문으로 알려진 요소. 이것을 품은 영역은 댓글 영역으로 고르지 않습니다.
+  const ARTICLE_SEL = '[itemprop="articleBody"], .article_view, #dmcfContents, #harmonyContainer, #dic_area, #newsct_article, #articleBodyContents, #article-view-content-div, .rd_body, .view_content, .write_div';
+  const FOREIGN_LIMIT = 400;
+
   const MAX_SCAN = 6000;
   const MAX_SECTIONS = 5;
   const THRESHOLD = 5;
@@ -122,11 +126,40 @@
     if (el.querySelector(COMMENT_IFRAME) || (el.matches && el.matches(COMMENT_IFRAME))) { s += 4; why.push('iframe'); }
 
     if (el.querySelector('h1')) { s -= 6; why.push('-h1'); }
+    if (el.matches(ARTICLE_SEL) || el.querySelector(ARTICLE_SEL)) { s -= 8; why.push('-article'); }
     if (/^(nav|header)$/.test(el.localName) || el.getAttribute('role') === 'navigation') { s -= 5; why.push('-nav'); }
     const len = (el.textContent || '').length;
     if (ctx.bodyLen > 2000 && len > ctx.bodyLen * 0.85) { s -= 6; why.push('-huge'); }
+    // 댓글 이름표도, 댓글 목록도 아닌 글이 많으면(기사 본문 등) 댓글 영역이 아니라 그보다 큰 틀입니다.
+    if (!kw && foreignTextLength(el, rep && rep.list) > FOREIGN_LIMIT) { s -= 6; why.push('-foreign'); }
     if (el.getBoundingClientRect().height < 20 && !el.querySelector(COMMENT_IFRAME)) { s -= 3; why.push('-tiny'); }
     return { s, why, len, kw };
+  }
+
+  // el 안의 글자 중 "댓글"이라는 이름이 붙은 요소나 댓글 목록 밖에 있는 글자 수
+  function foreignTextLength(el, list) {
+    const kwCache = new Map();
+    const underComment = (node) => {
+      for (let c = node.parentElement; c && c !== el; c = c.parentElement) {
+        if (kwCache.has(c)) return kwCache.get(c);
+        if (c === list || /^(script|style|noscript|template)$/.test(c.localName) || hasKeyword(c)) {
+          kwCache.set(c, true);
+          return true;
+        }
+      }
+      return false;
+    };
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let total = 0;
+    let visited = 0;
+    for (let n = walker.nextNode(); n && visited < 4000; n = walker.nextNode(), visited++) {
+      const t = n.nodeValue.trim();
+      if (t && !underComment(n)) {
+        total += t.length;
+        if (total > FOREIGN_LIMIT) break;
+      }
+    }
+    return total;
   }
 
   function safeMatches(el, sel) {
@@ -176,14 +209,14 @@
 
     // 바깥쪽 요소를 우선하되, 본문까지 삼킬 만큼 넓은 요소는 버립니다.
     // - 안쪽에 "댓글" 이름표가 붙은 후보가 있는데 바깥쪽엔 없으면 안쪽을 고릅니다.
-    // - 바깥쪽이 안쪽보다 텍스트가 꽤 많으면(본문 포함 가능성) 안쪽을 고릅니다.
+    // - 본문을 품은 영역은 score()에서 이미 감점(-article, -foreign, -h1)되어 여기까지 오지 않습니다.
     const depth = (el) => { let d = 0; for (let c = el; c; c = c.parentElement) d++; return d; };
     passing.sort((a, b) => depth(a.el) - depth(b.el));
     const chosen = [];
     for (const p of passing) {
       if (chosen.some((c) => c.el.contains(p.el))) continue;
       const inner = passing.filter((q) => q !== p && p.el.contains(q.el));
-      const tooBroad = inner.some((q) => (q.kw && !p.kw) || p.len - q.len > q.len * 0.5 + 150);
+      const tooBroad = inner.some((q) => q.kw && !p.kw);
       if (tooBroad) continue;
       chosen.push(p);
       if (chosen.length >= MAX_SECTIONS) break;
@@ -191,5 +224,5 @@
     return chosen;
   }
 
-  self.CHH_DETECTOR = { detect, _score: score };
+  self.CHH_DETECTOR = { detect, ARTICLE_SEL, _score: score };
 })();

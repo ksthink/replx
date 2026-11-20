@@ -4,6 +4,7 @@
     "naver.com": "#cbox_module, .u_cbox, .u_cbox_wrap",
     "cafe.naver.com": ".CommentBox, .comment_box",
     "daum.net": "#alex-area, .alex-area, .cmt_box",
+    "v.daum.net": ".comment_view",
     "arca.live": "#comment, .article-comment",
     "tistory.com": ".tt-comment-cont, .tt-area-reply, .tt-box-reply, #tt-body-page .comments",
     "m.dcinside.com": ".all-comment, .comment-box",

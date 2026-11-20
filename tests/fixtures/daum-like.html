@@ -1,0 +1,28 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>다음 뉴스 구조 재현</title>
+<style>body{font:14px sans-serif;max-width:800px;margin:auto}</style></head><body>
+<div class="container-doc wrap_view"><header class="doc-header"><h1 class="doc-title">뉴스</h1></header>
+<main class="doc-main"><section class="inner-main"><div class="main-content">
+ <article id="mArticle" class="box_view">
+  <div class="head_view"><h3 class="tit_view">기사 제목: 연예 소속사 월세 이야기</h3>
+   <div class="util_wrap"><span class="btn_engagement"><span><div class="daum-ui-6247cb-comment-count-label__label"><span class="daum-ui-6247cb-comment-count-label__count">5</span></div></span></span></div></div>
+  <div class="news_view fs_type1"><div class="article_view"><section>
+   <p>첫 번째 문단입니다. 기사 본문이 길게 이어집니다. 소속사가 매달 큰 금액을 월세로 낸다는 이야기가 방송에서 나왔고 출연진들이 놀랐다.</p>
+   <p>두 번째 문단입니다. 관계자는 사무실 규모와 위치를 고려하면 이해할 만한 금액이라고 설명했다. 이어서 다양한 반응이 나왔다.</p>
+   <p>세 번째 문단입니다. 방송은 다음 주에도 이어지며 추가 출연진이 합류할 예정이다. 본문의 길이를 충분히 확보하기 위한 문장입니다. 본문의 길이를 충분히 확보하기 위한 문장입니다.</p>
+   <p>네 번째 문단입니다. 본문의 길이를 충분히 확보하기 위한 문장입니다. 본문의 길이를 충분히 확보하기 위한 문장입니다. 본문의 길이를 충분히 확보하기 위한 문장입니다.</p>
+  </section></div></div>
+ </article>
+ <div class="comment_view"><div class="daum-ui-49fc1c-comment-widget-container__container"><div class="daum-ui-49fc1c-comment-widget-container__inner"><div>
+  <div class="daum-ui-258ee0-comment-header__container"><div class="daum-ui-258ee0-comment-header__titleArea"><strong class="daum-ui-258ee0-comment-header__title">댓글 5</strong></div></div>
+  <div><div><div class="daum-ui-0ee6ef-comment-input__container"><label class="daum-ui-0ee6ef-comment-input__box"><span class="daum-ui-0ee6ef-comment-input__label">댓글을 입력해주세요</span><textarea class="daum-ui-0ee6ef-comment-input__textarea"></textarea></label></div></div></div>
+  <div id="list"></div>
+ </div></div></div></div>
+</div></section></main></div>
+<script>
+setTimeout(() => {
+  const items = ['좋은 기사네요','월세가 엄청나네','놀랍다','다음 주도 봐야지','ㅋㅋㅋ'].map((t,i) =>
+    `<article class="daum-ui-aca564-comment-item__container"><span class="nick">사용자${i}</span><span>${i+1}시간 전</span><p>${t}</p><button>답글</button><button>추천</button></article>`).join('');
+  document.getElementById('list').innerHTML = `<div class="comment_sort_bar">추천순 최신순</div><div><div>${items}</div></div>`;
+}, 1200);
+</script>
+</body></html>
