@@ -27,6 +27,15 @@ function renderList(ul, box, map, key) {
     const li = document.createElement('li');
     const code = document.createElement('code');
     code.textContent = h === host ? sel : `${sel}  (${h})`;
+    const see = document.createElement('button');
+    see.textContent = '👁';
+    see.className = 'see';
+    see.title = '페이지에서 위치 보기';
+    see.onclick = async () => {
+      const r = await send({ type: 'flash', selector: sel, mode: key === 'userAllow' ? 'allow' : 'hide' }, { frameId: 0 });
+      see.title = r?.n ? `이 페이지에서 ${r.n}곳` : '이 페이지에는 해당하는 곳이 없어요';
+      if (!r?.n) { see.textContent = '∅'; setTimeout(() => (see.textContent = '👁'), 1200); }
+    };
     const del = document.createElement('button');
     del.textContent = '✕';
     del.title = '삭제';
@@ -37,7 +46,7 @@ function renderList(ul, box, map, key) {
       await save({ [key]: next });
       render();
     };
-    li.append(code, del);
+    li.append(code, see, del);
     ul.append(li);
   }
 }
@@ -54,6 +63,7 @@ async function render() {
   $('siteOn').checked = supported && !settings.disabledSites.includes(host) && !excluded;
   $('siteOn').disabled = !supported || excluded;
   $('pick').disabled = !supported || !settings.enabled;
+  $('pickAllow').disabled = !supported || !settings.enabled;
   $('peek').disabled = !supported;
 
   renderList($('rules'), $('rulesBox'), settings.userRules, 'userRules');
@@ -104,7 +114,8 @@ async function init() {
     render();
   };
   $('peek').onclick = async () => { await send({ type: 'toggleShow' }); setTimeout(render, 100); };
-  $('pick').onclick = async () => { await send({ type: 'startPicker' }); window.close(); };
+  $('pick').onclick = async () => { await send({ type: 'startPicker', mode: 'hide' }); window.close(); };
+  $('pickAllow').onclick = async () => { await send({ type: 'startPicker', mode: 'allow' }); window.close(); };
   $('openOptions').onclick = (e) => { e.preventDefault(); chrome.runtime.openOptionsPage(); };
 
   render();

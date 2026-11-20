@@ -31,3 +31,10 @@ footer a { color: #555; }
   background: #fff; border-radius: 50%; transition: .15s; }
 .switch input:checked + span { background: var(--red); }
 .switch input:checked + span::before { left: calc(50%); }
+button.allow { background: #fff; border-color: #16a34a; color: #15803d; }
+button.allow:hover { background: #f0fdf4; }
+.btns + .btns { margin-top: 6px; }
+h3 small { font-weight: 400; color: var(--muted); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.dot.hide { background: var(--red); } .dot.allow { background: #16a34a; }
+li button.see { font-size: 11px; }

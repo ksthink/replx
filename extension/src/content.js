@@ -12,6 +12,7 @@
 
   let settings = { ...DEFAULTS };
   let showAll = false; // "잠깐 보기"
+  let revealing = false; // 제외 영역 고르는 중: 숨긴 곳을 점선으로 드러냄
   let style = null;
   let lastContextTarget = null;
 
@@ -49,6 +50,9 @@
     if (buf.trim()) out.push(buf.trim());
     return out;
   }
+  // 선택자 하나하나를 검사해 잘못된 것은 버립니다(:has() 안에 잘못된 선택자가 들어가면 규칙 전체가 무시되기 때문).
+  const validSel = (s) => { try { document.createDocumentFragment().querySelector(s); return true; } catch { return false; } };
+
   function qsa(sel) {
     try { return [...document.querySelectorAll(sel)]; } catch { return []; }
   }
@@ -56,16 +60,27 @@
   const isActive = () => settings.enabled && !showAll && !matchHost(settings.disabledSites) && !matchHost(settings.excludedSites);
 
   // ---------- CSS ----------
+  function allowGuard() {
+    const a = allowSelectors().filter(validSel).join(', ');
+    // 제외 영역 자신, 그 안쪽, 그것을 품은 바깥쪽 모두 숨기지 않습니다.
+    return a ? `:not(:is(${a})):not(:is(${a}) *):not(:has(${a}))` : '';
+  }
+
   function buildCss() {
     if (!isActive()) return '';
     // 기사 제목(h1)이나 본문을 품은 요소는 규칙에 걸려도 숨기지 않습니다(규칙이 너무 넓게 잡힌 경우의 안전장치).
-    const guard = `:not([data-chh-show]):not(pre *):not(code *):not(textarea):not(:has(h1, ${self.CHH_DETECTOR.ARTICLE_SEL}))`;
-    const hideSel = [siteSelectors(), ...userSelectors()].filter(Boolean).join(', ');
+    const guard = `:not([data-chh-show]):not(pre *):not(code *):not(textarea):not(:has(h1, ${self.CHH_DETECTOR.ARTICLE_SEL}))${allowGuard()}`;
+    const hideSel = [siteSelectors(), ...userSelectors().filter(validSel)].filter(Boolean).join(', ');
+    // 제외 영역을 고르는 동안에는 숨긴 곳을 지우지 않고 빨간 점선으로 보여 줍니다.
+    const decl = revealing
+      ? '{outline:2px dashed #e03a26!important;outline-offset:-2px!important;background-color:rgba(224,58,38,.05)!important}'
+      : '{display:none!important}';
     let css = '';
     // :is()는 잘못된 선택자가 섞여도 나머지를 살려 둡니다.
-    if (hideSel) css += `:is(${hideSel})${guard}{display:none!important}\n`;
-    css += `[data-chh]${guard}{display:none!important}\n`;
-    if (settings.hideCounts) css += `:is(${countSelectors()}):not(textarea){display:none!important}\n`;
+    if (hideSel) css += `:is(${hideSel})${guard}${decl}\n`;
+    css += `[data-chh]${guard}${decl}\n`;
+    if (settings.hideCounts) css += `:is(${countSelectors()}):not(textarea)${allowGuard()}${decl}\n`;
+    if (revealing) css += 'chh-ph{display:none!important}\n';
     return css;
   }
 
@@ -82,7 +97,7 @@
   // ---------- 표시/접기 ----------
   function isAllowed(el) {
     const allows = allowSelectors();
-    return allows.some((s) => { try { return el.matches(s) || !!el.closest(s); } catch { return false; } });
+    return allows.some((s) => { try { return el.matches(s) || !!el.closest(s) || !!el.querySelector(s); } catch { return false; } });
   }
 
   function userIsTypingIn(el) {
@@ -137,13 +152,68 @@
 
   async function markNotComment(el) {
     const sel = self.CHH_PICKER.buildSelector(el);
-    const data = await chrome.storage.sync.get({ userAllow: {} });
-    const list = new Set(data.userAllow[HOST] || []);
-    list.add(sel);
-    data.userAllow[HOST] = [...list];
-    await chrome.storage.sync.set({ userAllow: data.userAllow });
     placeholderFor(el)?.remove();
     el.removeAttribute('data-chh');
+    await addRule('allow', HOST, sel);
+  }
+
+  // ---------- 규칙 저장/되돌리기 ----------
+  const KEY = { hide: 'userRules', allow: 'userAllow' };
+
+  async function addRule(mode, host, selector) {
+    const key = KEY[mode];
+    const data = await chrome.storage.sync.get({ [key]: {} });
+    const list = new Set(data[key][host] || []);
+    list.add(selector);
+    data[key][host] = [...list];
+    await chrome.storage.sync.set({ [key]: data[key] });
+    toast(mode === 'hide' ? '숨김 규칙을 저장했어요' : '제외 규칙을 저장했어요', selector, () => removeRule(mode, host, selector));
+  }
+
+  async function removeRule(mode, host, selector) {
+    const key = KEY[mode];
+    const data = await chrome.storage.sync.get({ [key]: {} });
+    data[key][host] = (data[key][host] || []).filter((s) => s !== selector);
+    if (!data[key][host].length) delete data[key][host];
+    await chrome.storage.sync.set({ [key]: data[key] });
+  }
+
+  function toast(text, selector, undo) {
+    document.querySelectorAll('chh-toast').forEach((t) => t.remove());
+    const host = document.createElement('chh-toast');
+    const root = host.attachShadow({ mode: 'open' });
+    root.innerHTML = `<style>
+      :host{all:initial}
+      .t{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483647;display:flex;gap:10px;align-items:center;
+        background:#1f1f1f;color:#fff;padding:9px 12px 9px 14px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);
+        font:13px/1.4 -apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;max-width:90vw}
+      code{font:11.5px ui-monospace,Menlo,Consolas,monospace;color:#ffd591;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      button{all:unset;cursor:pointer;padding:4px 9px;border-radius:6px;background:#3a3a3a;font-size:12px}
+      button:hover{background:#4a4a4a}
+    </style><div class="t"><span></span><code></code><button>되돌리기</button></div>`;
+    root.querySelector('span').textContent = text;
+    root.querySelector('code').textContent = selector;
+    root.querySelector('button').addEventListener('click', () => { undo(); host.remove(); });
+    document.documentElement.appendChild(host);
+    setTimeout(() => host.remove(), 7000);
+  }
+
+  // 팝업의 규칙 목록에서 👁를 누르면 그 규칙에 해당하는 곳을 잠깐 드러내 깜빡여 보여 줍니다.
+  function flash(selector, mode) {
+    const els = qsa(selector);
+    const color = mode === 'allow' ? '#16a34a' : '#e03a26';
+    els.forEach((el) => {
+      el.setAttribute('data-chh-show', '');
+      el.style.setProperty('outline', `3px solid ${color}`, 'important');
+      el.style.setProperty('outline-offset', '-3px', 'important');
+    });
+    if (els[0] && IS_TOP) els[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => els.forEach((el) => {
+      el.removeAttribute('data-chh-show');
+      el.style.removeProperty('outline');
+      el.style.removeProperty('outline-offset');
+    }), 2500);
+    return els.length;
   }
 
   // ---------- 스캔 ----------
@@ -198,19 +268,27 @@
   }
 
   // ---------- 피커 연결 ----------
-  function startPicker(preselect) {
+  function setReveal(on) {
+    if (revealing === on) return;
+    revealing = on;
+    applyCss();
+  }
+
+  function startPicker(mode, preselect) {
     self.CHH_PICKER.start({
       host: HOST,
+      mode,
       preselect,
-      onSave: async (host, selector) => {
-        const data = await chrome.storage.sync.get({ userRules: {} });
-        const list = new Set(data.userRules[host] || []);
-        list.add(selector);
-        data.userRules[host] = [...list];
-        await chrome.storage.sync.set({ userRules: data.userRules });
+      onModeChange: (m) => setReveal(m === 'allow'),
+      onSave: async (host, selector, m) => {
+        setReveal(false);
+        await addRule(m, host, selector);
         chrome.runtime.sendMessage({ type: 'pickerDone' }).catch(() => {});
       },
-      onStop: (cancelled) => { if (cancelled) chrome.runtime.sendMessage({ type: 'pickerDone' }).catch(() => {}); },
+      onStop: (cancelled) => {
+        setReveal(false);
+        if (cancelled) chrome.runtime.sendMessage({ type: 'pickerDone' }).catch(() => {});
+      },
     });
   }
 
@@ -242,10 +320,13 @@
         sendResponse?.({ showAll });
         return;
       case 'startPicker':
-        startPicker(null);
+        startPicker(msg.mode || 'hide', null);
         return;
       case 'pickContextTarget':
-        if (lastContextTarget && document.contains(lastContextTarget)) startPicker(lastContextTarget);
+        if (lastContextTarget && document.contains(lastContextTarget)) startPicker('hide', lastContextTarget);
+        return;
+      case 'flash':
+        sendResponse?.({ n: flash(msg.selector, msg.mode) });
         return;
       case 'stopPicker':
         if (self.CHH_PICKER.isActive()) self.CHH_PICKER.stop();
@@ -275,7 +356,7 @@
   const mo = new MutationObserver((muts) => {
     for (const m of muts) {
       if (m.addedNodes.length) {
-        for (const n of m.addedNodes) if (n.nodeType === 1 && n.localName !== 'chh-ph' && n.localName !== 'chh-picker') { schedule(); return; }
+        for (const n of m.addedNodes) if (n.nodeType === 1 && !/^chh-(ph|picker|toast)$/.test(n.localName)) { schedule(); return; }
       }
     }
   });

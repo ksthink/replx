@@ -15,19 +15,20 @@
     <div class="status" id="status">상태 확인 중…</div>
     <label class="row"><span>이 사이트에서 사용</span><span class="switch small"><input type="checkbox" id="siteOn"><span></span></span></label>
     <div class="btns">
-      <button id="peek">잠깐 보기</button>
-      <button id="pick" class="primary">＋ 직접 지정</button>
+      <button id="pick" class="primary">＋ 숨길 영역</button>
+      <button id="pickAllow" class="allow">－ 제외할 영역</button>
     </div>
-    <p class="hint">못 숨긴 댓글이 있으면 <b>직접 지정</b>을 누르고 댓글 영역을 클릭하세요.</p>
+    <div class="btns"><button id="peek">잠깐 보기</button></div>
+    <p class="hint"><b>숨길 영역</b>: 못 숨긴 댓글을 클릭해 숨겨요.<br><b>제외할 영역</b>: 잘못 숨겨진 곳을 클릭해 다시 보이게 해요.</p>
   </section>
 
   <section id="rulesBox" hidden>
-    <h3>이 사이트의 직접 지정 규칙</h3>
+    <h3><span class="dot hide"></span>숨김 규칙</h3>
     <ul id="rules"></ul>
   </section>
 
   <section id="allowBox" hidden>
-    <h3>"댓글 아님"으로 지정한 영역</h3>
+    <h3><span class="dot allow"></span>제외 규칙 <small>(숨기지 않을 곳)</small></h3>
     <ul id="allows"></ul>
   </section>
 
@@ -41,7 +42,7 @@
 
   <footer>
     <a href="#" id="openOptions">전체 설정</a>
-    <span class="keys">Alt+Shift+C 잠깐 보기 · Alt+Shift+X 직접 지정</span>
+    <span class="keys">Alt+Shift+ C 잠깐 보기 · X 숨길 · Z 제외</span>
   </footer>
   <script src="../src/defaults.js"></script>
   <script src="popup.js"></script>

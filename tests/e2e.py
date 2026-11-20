@@ -58,7 +58,7 @@ async def main():
             await page.keyboard.press("ArrowUp")
             await page.keyboard.press("ArrowUp")
             await page.wait_for_timeout(150)
-            sel = await page.locator("chh-picker .sel").text_content()
+            sel = await page.locator("chh-picker input.sel").input_value()
             check("picker selector", sel == "div.zz", sel)
             await page.locator("chh-picker button[data-a=save]").click()
             await page.wait_for_timeout(1500)
@@ -92,6 +92,62 @@ async def main():
             await send_to_active_tab(sw, {"type": "toggleShow"})
             await page.wait_for_timeout(300)
             check("peek", await is_hidden(page, "#cmtArea") is False)
+
+            # 제외 피커: 자동 탐지로 숨겨진 #cmtArea를 드러내 클릭해 제외
+            await page.goto(BASE + "community.html")
+            await page.wait_for_timeout(1500)
+            check("allow: hidden before", await is_hidden(page, "#cmtArea") is True)
+            await send_to_active_tab(sw, {"type": "startPicker", "mode": "allow"})
+            await page.wait_for_timeout(300)
+            check("allow: revealed while picking", await is_hidden(page, "#cmtArea") is False)
+            box = await page.locator(".fdb_tag").bounding_box()
+            await page.mouse.move(box["x"] + 3, box["y"] + 3)
+            await page.mouse.click(box["x"] + 3, box["y"] + 3)
+            await page.keyboard.press("ArrowUp")
+            await page.wait_for_timeout(150)
+            sel = await page.locator("chh-picker input.sel").input_value()
+            check("allow: selector", sel == "#cmtArea", sel)
+            await page.keyboard.press("Enter")
+            await page.wait_for_timeout(1500)
+            allow = (await sw.evaluate("() => chrome.storage.sync.get('userAllow')"))["userAllow"].get("localhost", [])
+            check("allow: stored", "#cmtArea" in allow, str(allow))
+            check("allow: stays visible", await is_hidden(page, "#cmtArea") is False)
+            check("allow: toast shown", await page.locator("chh-toast").count() == 1)
+            await page.locator("chh-toast button").click()
+            await page.wait_for_timeout(1500)
+            allow = (await sw.evaluate("() => chrome.storage.sync.get('userAllow')"))["userAllow"].get("localhost", [])
+            check("allow: undo removes rule", "#cmtArea" not in allow, str(allow))
+            check("allow: hidden again after undo", await is_hidden(page, "#cmtArea") is True)
+
+            # 제외 규칙이 숨김 규칙의 바깥(조상)도 막는지, 잘못된 선택자가 섞여도 나머지가 동작하는지
+            await sw.evaluate("""() => chrome.storage.sync.set({
+                userRules: { localhost: ['div.zz', 'div[', '.other'] },
+                userAllow: { localhost: ['section.q7z', 'div[', '.yy'] } })""")
+            await page.goto(BASE + "picker.html")
+            await page.wait_for_timeout(1200)
+            got = {s: await is_hidden(page, s) for s in (".zz", ".yy", ".other")}
+            check("allow: guards ancestor + invalid selectors ignored", got == {".zz": False, ".yy": False, ".other": True}, str(got))
+            await sw.evaluate("() => chrome.storage.sync.set({ userRules: {}, userAllow: { localhost: ['section.q7z'] } })")
+
+            # 숨김 피커에서 선택자 직접 편집
+            await page.goto(BASE + "demo-picker.html")
+            await page.wait_for_timeout(1200)
+            await send_to_active_tab(sw, {"type": "startPicker", "mode": "hide"})
+            await page.wait_for_timeout(300)
+            box = await page.locator(".yy p").first.bounding_box()
+            await page.mouse.move(box["x"] + 5, box["y"] + 5)
+            await page.mouse.click(box["x"] + 5, box["y"] + 5)
+            await page.locator("chh-picker input.sel").fill("div[")
+            await page.wait_for_timeout(100)
+            check("edit: invalid disables save", await page.locator("chh-picker button[data-a=save]").is_disabled())
+            await page.locator("chh-picker input.sel").fill(".yy p:nth-of-type(2)")
+            await page.wait_for_timeout(100)
+            info = await page.locator("chh-picker .info").text_content()
+            check("edit: live count", "1곳" in info, info)
+            await page.locator("chh-picker input.sel").press("Enter")
+            await page.wait_for_timeout(1500)
+            got = [await page.locator(".yy p").nth(i).evaluate("e => !e.checkVisibility()") for i in range(3)]
+            check("edit: only edited target hidden", got == [False, True, False], str(got))
 
             check("no page errors", not errors, str(errors[:3]))
 

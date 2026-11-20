@@ -36,7 +36,7 @@ $('save').onclick = async () => {
   try {
     await chrome.storage.sync.set({
       userRules: textToMap($('userRules').value, '숨김 규칙'),
-      userAllow: textToMap($('userAllow').value, '댓글 아님'),
+      userAllow: textToMap($('userAllow').value, '제외 규칙'),
       excludedSites: textToList($('excludedSites').value),
       disabledSites: textToList($('disabledSites').value),
     });
