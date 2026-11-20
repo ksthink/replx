@@ -31,4 +31,3 @@ footer a { color: #555; }
   background: #fff; border-radius: 50%; transition: .15s; }
 .switch input:checked + span { background: var(--red); }
 .switch input:checked + span::before { left: calc(50%); }
-.title small { font-weight: 400; color: #888; font-size: 12px; }
