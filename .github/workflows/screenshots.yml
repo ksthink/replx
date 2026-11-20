@@ -1,0 +1,50 @@
+name: Screenshots
+
+# 확장이나 데모 페이지가 바뀌면 README 스크린샷을 다시 찍어 커밋합니다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'extension/**'
+      - 'tests/**'
+      - '.github/workflows/screenshots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screenshots
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Playwright·한글 폰트 설치
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+
+      - name: 스크린샷 생성
+        run: python tests/screenshots.py
+
+      - name: 바뀐 스크린샷 커밋·푸시
+        run: |
+          if git diff --quiet -- docs/screenshots; then
+            echo "스크린샷 변경 없음"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots
+          git commit -m "docs: 스크린샷 자동 갱신"
+          git pull --rebase origin main
+          git push

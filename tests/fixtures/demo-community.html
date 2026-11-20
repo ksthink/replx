@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>데모 커뮤니티 - 자유게시판</title>
+<style>
+  body { margin: 0; background: #f2f3f5; font: 14px/1.6 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; color: #222; }
+  .top { background: #2f4da1; color: #fff; padding: 12px 24px; display: flex; gap: 22px; align-items: center; }
+  .top b { font-size: 18px; } .top a { color: #dfe6ff; text-decoration: none; }
+  .wrap { max-width: 820px; margin: 18px auto; background: #fff; border: 1px solid #e3e5e8; border-radius: 6px; }
+  .board_read { padding: 22px 26px; }
+  h1 { font-size: 21px; margin: 0 0 6px; }
+  .meta { color: #888; font-size: 12.5px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+  .rd_body p { margin: 14px 0; }
+  .vote { text-align: center; margin: 22px 0 6px; }
+  .vote span { display: inline-block; border: 1px solid #d6dbe6; border-radius: 20px; padding: 5px 16px; color: #2f4da1; }
+  .fdb_lst_wrp { border-top: 1px solid #eee; padding: 16px 26px 22px; background: #fafbfc; }
+  .fdb_tag { font-weight: 700; margin-bottom: 8px; } .fdb_tag b { color: #e03a26; }
+  .fdb_lst_ul { list-style: none; margin: 0; padding: 0; }
+  .fdb_itm { border-bottom: 1px solid #eceef1; padding: 10px 0; }
+  .fdb_itm .nick { font-weight: 600; margin-right: 8px; } .fdb_itm .date { color: #999; font-size: 12px; }
+  .fdb_itm p { margin: 4px 0; } .fdb_itm a { color: #888; font-size: 12px; margin-right: 10px; }
+  textarea { width: 100%; box-sizing: border-box; height: 64px; margin-top: 12px; border: 1px solid #d9dce1; border-radius: 4px; padding: 8px; font: inherit; }
+  .list { max-width: 820px; margin: 0 auto 30px; background: #fff; border: 1px solid #e3e5e8; border-radius: 6px; }
+  .list div { padding: 9px 18px; border-bottom: 1px solid #f0f1f3; display: flex; justify-content: space-between; }
+  .list .reply_num { color: #e03a26; font-weight: 600; margin-left: 4px; } .list small { color: #aaa; }
+</style>
+</head>
+<body>
+  <div class="top"><b>데모 커뮤니티</b><a>베스트</a><a>자유게시판</a><a>유머</a><a>정보</a></div>
+  <div class="wrap">
+    <div class="board_read">
+      <h1>퇴근길에 본 노을이 너무 예뻐서 올려요</h1>
+      <div class="meta">익명 · 2026.11.20 18:42 · 조회 1,204</div>
+      <div class="rd_body">
+        <p>오늘 퇴근하는데 하늘이 분홍색이랑 보라색으로 물들어서 한참 서서 봤네요. 사진으로는 그 느낌이 잘 안 담겨서 아쉽지만, 다들 오늘 하루 고생 많으셨어요.</p>
+        <p>주말에는 한강에 가서 다시 노을 보려고 합니다. 추천할 만한 장소 있으면 알려주세요!</p>
+      </div>
+      <div class="vote"><span>추천 87</span></div>
+    </div>
+    <div class="fdb_lst_wrp">
+      <div class="fdb_tag">댓글 <b>4</b></div>
+      <ul class="fdb_lst_ul">
+        <li class="fdb_itm"><span class="nick">하늘바라기</span><span class="date">12분 전</span><p>와 저도 봤어요 진짜 예뻤음</p><a>답글</a><a>추천 12</a></li>
+        <li class="fdb_itm"><span class="nick">ㅇㅇ</span><span class="date">9분 전</span><p>이런 글 보려고 커뮤 함</p><a>답글</a><a>추천 8</a></li>
+        <li class="fdb_itm"><span class="nick">퇴근하고싶다</span><span class="date">5분 전</span><p>저는 아직 회사입니다...</p><a>답글</a><a>추천 31</a></li>
+        <li class="fdb_itm"><span class="nick">익명</span><span class="date">1분 전</span><p>선유도공원 추천합니다</p><a>답글</a><a>신고</a></li>
+      </ul>
+      <textarea placeholder="댓글을 입력하세요"></textarea>
+    </div>
+  </div>
+  <div class="list">
+    <div><a>요즘 날씨 너무 춥네요 <span class="reply_num">[23]</span></a><small>18:30</small></div>
+    <div><a>점심 메뉴 추천 받아요 <span class="reply_num">[57]</span></a><small>18:12</small></div>
+    <div><a>주말에 볼 영화 있나요 <span class="reply_num">[9]</span></a><small>17:55</small></div>
+  </div>
+</body>
+</html>

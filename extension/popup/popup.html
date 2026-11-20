@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="title"><img src="../icons/32.png" alt=""> Replx <small>댓글 가림막</small></div>
+    <label class="switch" title="전체 켜기/끄기"><input type="checkbox" id="enabled"><span></span></label>
+  </header>
+
+  <section class="site">
+    <div class="host" id="host">—</div>
+    <div class="status" id="status">상태 확인 중…</div>
+    <label class="row"><span>이 사이트에서 사용</span><span class="switch small"><input type="checkbox" id="siteOn"><span></span></span></label>
+    <div class="btns">
+      <button id="peek">잠깐 보기</button>
+      <button id="pick" class="primary">＋ 직접 지정</button>
+    </div>
+    <p class="hint">못 숨긴 댓글이 있으면 <b>직접 지정</b>을 누르고 댓글 영역을 클릭하세요.</p>
+  </section>
+
+  <section id="rulesBox" hidden>
+    <h3>이 사이트의 직접 지정 규칙</h3>
+    <ul id="rules"></ul>
+  </section>
+
+  <section id="allowBox" hidden>
+    <h3>"댓글 아님"으로 지정한 영역</h3>
+    <ul id="allows"></ul>
+  </section>
+
+  <section class="opts">
+    <label class="row"><span>숨김 방식</span>
+      <select id="mode"><option value="hide">완전히 숨김</option><option value="collapse">접어두기</option></select>
+    </label>
+    <label class="row"><span>댓글 영역 자동 탐지</span><span class="switch small"><input type="checkbox" id="autoDetect"><span></span></span></label>
+    <label class="row"><span>댓글 수 숫자도 숨기기</span><span class="switch small"><input type="checkbox" id="hideCounts"><span></span></span></label>
+  </section>
+
+  <footer>
+    <a href="#" id="openOptions">전체 설정</a>
+    <span class="keys">Alt+Shift+C 잠깐 보기 · Alt+Shift+X 직접 지정</span>
+  </footer>
+  <script src="../src/defaults.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

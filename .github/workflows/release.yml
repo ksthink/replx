@@ -1,0 +1,35 @@
+name: Release
+
+# v0.1.0 같은 태그를 푸시하면 확장 zip을 만들어 GitHub 릴리스에 올립니다.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 태그와 manifest 버전 일치 확인
+        run: |
+          VERSION=$(node -p "require('./extension/manifest.json').version")
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "태그($GITHUB_REF_NAME)와 manifest 버전(v$VERSION)이 다릅니다."; exit 1
+          fi
+          node tools/build-rules.mjs --check
+
+      - name: 압축 및 릴리스
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd extension && zip -qr "../replx-$GITHUB_REF_NAME.zip" . && cd ..
+          gh release create "$GITHUB_REF_NAME" "replx-$GITHUB_REF_NAME.zip" \
+            --title "Replx $GITHUB_REF_NAME" --generate-notes

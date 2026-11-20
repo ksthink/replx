@@ -1,0 +1,20 @@
+{
+  "_comment": "국내 사이트 추가 규칙. 사이트 개편으로 셀렉터가 바뀔 수 있으며, 규칙이 빗나가도 자동 탐지와 직접 지정이 보완합니다.",
+  "sites": {
+    "naver.com": "#cbox_module, .u_cbox, .u_cbox_wrap",
+    "cafe.naver.com": ".CommentBox, .comment_box",
+    "daum.net": "#alex-area, .alex-area, .cmt_box",
+    "arca.live": "#comment, .article-comment",
+    "tistory.com": ".tt-comment-cont, .tt-area-reply, .tt-box-reply, #tt-body-page .comments",
+    "m.dcinside.com": ".all-comment, .comment-box",
+    "pann.nate.com": ".cmt_list, .cmt_area, #commentDiv"
+  },
+  "count_selectors": {
+    "gall.dcinside.com": ".reply_num, .gall_comment",
+    "www.fmkorea.com": ".replyNum, .comment_count",
+    "theqoo.net": ".replyNum, .reply_num",
+    "clien.net": ".rSymph05, .list_reply",
+    "bbs.ruliweb.com": ".num_reply, .reply_count",
+    "arca.live": ".comment-count, .info-row .comment-count"
+  }
+}
