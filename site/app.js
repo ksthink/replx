@@ -1,4 +1,4 @@
-// Chrome 웹 스토어에 등록되면 주소를 넣으세요. 비어 있으면 직접 설치 안내로 연결합니다.
+// Chrome 웹 스토어에 등록되면 주소를 넣으세요. 비어 있으면 GitHub 릴리스의 최신 zip(replx.zip)을 받게 합니다.
 const STORE_URL = '';
 
 const $ = (s) => document.querySelector(s);
@@ -10,6 +10,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 if (STORE_URL) {
   $('#getBtn').href = STORE_URL;
+  $('#getBtn').textContent = 'Chrome에 추가';
   $('#getNote').hidden = true;
 }
 
