@@ -15,9 +15,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/ksthink/replx" alt="라이선스: MIT"></a>
 </p>
 
-https://github.com/user-attachments/assets/9d38a593-6687-441c-83c2-6c89befe3710
-
-<p align="center"><sub><a href="https://www.youtube.com/watch?v=wW_NyqWbEVE">▶ YouTube에서 보기</a></sub></p>
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=wW_NyqWbEVE"><img src="https://img.youtube.com/vi/wW_NyqWbEVE/maxresdefault.jpg" width="640" alt="Replx 소개 영상 (YouTube)"></a><br>
+  <sub>▶ 30초 소개 영상 (YouTube)</sub>
+</p>
 
 <p align="center">
   <a href="https://github.com/ksthink/replx/releases/latest/download/replx.zip"><b>최신 버전 받기</b></a> · <a href="https://ksthink.github.io/replx/"><b>소개 페이지</b></a>
