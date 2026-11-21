@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Replx 유튜브 섬네일 (1280×720)</title>
+<!-- ?v=a (빨간 배경) / ?v=b (밝은 배경). render: python video/thumbnail.py -->
+<style>
+  @font-face { font-family: "Pretendard"; src: url("fonts/PretendardVariable.woff2") format("woff2-variations"); font-weight: 45 920; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; }
+  body { font-family: "Pretendard", sans-serif; -webkit-font-smoothing: antialiased; word-break: keep-all; position: relative; }
+
+  /* 공통: 기사 카드 + 지워진 댓글 */
+  .card { position: absolute; background: #fff; border-radius: 26px; padding: 34px 36px; box-shadow: 0 40px 80px -30px rgba(0,0,0,.45); }
+  .card .t { font-size: 34px; font-weight: 800; letter-spacing: -1px; color: #1a1d24; line-height: 1.25; }
+  .card .b { margin-top: 14px; height: 14px; border-radius: 7px; background: #e6e9ee; }
+  .card .b.s { width: 70%; }
+  .cmt { position: relative; margin-top: 18px; padding: 16px 20px; border-radius: 18px 18px 18px 5px; background: #f1f3f6; font-size: 27px; font-weight: 600; color: #4a505c; }
+  .cmt b { color: #1a1d24; margin-right: 10px; }
+  .cmt::after { content: ""; position: absolute; left: 14px; right: 14px; top: 50%; height: 7px; margin-top: -3px; background: #e03a26; border-radius: 4px; transform: rotate(-2deg); }
+  .stamp { position: absolute; display: flex; align-items: center; gap: 12px; background: #e03a26; color: #fff; font-size: 30px; font-weight: 900; padding: 12px 22px; border-radius: 16px; transform: rotate(-6deg); box-shadow: 0 16px 30px -12px rgba(224,58,38,.6); }
+  .stamp img { width: 40px; height: 40px; border-radius: 10px; background: #fff; }
+
+  /* A: 빨간 배경 */
+  .a { background: #e03a26; color: #fff; }
+  .a h1 { position: absolute; left: 70px; top: 62px; font-size: 142px; line-height: 1.02; letter-spacing: -0.06em; font-weight: 900; }
+  .a .brand { position: absolute; left: 74px; bottom: 56px; display: flex; align-items: center; gap: 18px; font-size: 58px; font-weight: 900; letter-spacing: -1.5px; }
+  .a .brand img { width: 76px; height: 76px; border-radius: 18px; box-shadow: 0 10px 24px -8px rgba(0,0,0,.35); }
+  .a .brand span { font-size: 34px; font-weight: 700; opacity: .9; margin-left: 6px; letter-spacing: -0.5px; }
+  .a .card { right: 60px; top: 90px; width: 540px; transform: rotate(3deg); }
+  /* 오른쪽 아래는 유튜브가 영상 길이를 덮어 쓰는 자리라 비워 둡니다 */
+  .a .stamp { right: 470px; top: 38px; background: #1a1d24; transform: rotate(-8deg); }
+
+  /* B: 밝은 배경 */
+  .b-wrap { background: #f1f3f6; color: #1a1d24; }
+  .b-wrap .bub { position: absolute; padding: 14px 24px; border-radius: 24px 24px 24px 6px; background: #fff; font-size: 30px; font-weight: 700; color: #4a505c; box-shadow: 0 12px 26px -14px rgba(26,29,36,.35); }
+  .b-wrap .bub.hot { background: #fde6e2; color: #8e2a1c; }
+  .b-wrap .bub::after { content: ""; position: absolute; left: 14px; right: 14px; top: 50%; height: 6px; margin-top: -3px; background: #e03a26; border-radius: 3px; }
+  .b-wrap .core { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .b-wrap .core img { width: 150px; height: 150px; border-radius: 34px; filter: drop-shadow(0 22px 30px rgba(224,58,38,.35)); }
+  .b-wrap .core h1 { font-size: 190px; line-height: 1; letter-spacing: -0.065em; font-weight: 900; margin-top: 8px; }
+  .b-wrap .core p { font-size: 64px; font-weight: 900; letter-spacing: -0.04em; margin-top: 4px; background: #e03a26; color: #fff; padding: 4px 26px 10px; border-radius: 18px; }
+</style>
+</head>
+<body>
+  <div id="a" class="a" hidden style="position:absolute;inset:0">
+    <h1>댓글<br>없이<br>읽기.</h1>
+    <div class="brand"><img src="../extension/icons/128.png" alt="">Replx<span>크롬 확장</span></div>
+    <div class="card">
+      <div class="t">도서관 야간 개방,<br>이번 겨울부터 주 3회로</div>
+      <div class="b"></div><div class="b"></div><div class="b s"></div>
+      <div class="cmt"><b>ㅇㅇ</b>세금 이런 데 써야지</div>
+      <div class="cmt"><b>익명</b>근데 그거 아님</div>
+      <div class="cmt"><b>1등</b>ㅋㅋㅋㅋ 이게 맞냐</div>
+    </div>
+    <div class="stamp"><img src="../extension/icons/128.png" alt="">클릭 한 번</div>
+  </div>
+
+  <div id="b" class="b-wrap" hidden style="position:absolute;inset:0">
+    <div class="bub" style="left:50px;top:60px">ㅋㅋㅋㅋ 이게 맞냐</div>
+    <div class="bub hot" style="left:880px;top:46px">베스트 추천 1.2만</div>
+    <div class="bub" style="left:60px;top:300px">근데 그거 아님</div>
+    <div class="bub hot" style="left:990px;top:280px">댓글 3,204</div>
+    <div class="bub" style="left:90px;top:560px">↳ 답글 128개</div>
+    <div class="bub" style="left:930px;top:560px">요약 좀</div>
+    <div class="bub" style="left:420px;top:30px">ㄹㅇ 공감</div>
+    <div class="core">
+      <img src="../extension/icons/128.png" alt="">
+      <h1>Replx</h1>
+      <p>댓글 없이 읽기</p>
+    </div>
+  </div>
+
+  <script>
+    const v = new URLSearchParams(location.search).get('v') || 'a';
+    document.getElementById(v).hidden = false;
+    window.ready = document.fonts.ready.then(() => true);
+  </script>
+</body>
+</html>
