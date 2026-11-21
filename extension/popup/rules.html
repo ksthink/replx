@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Replx — 제외·차단 목록</title>
+  <link rel="stylesheet" href="rules.css">
+</head>
+<body>
+  <header>
+    <div class="title"><img src="../icons/32.png" alt=""> Replx 제외·차단 목록</div>
+    <span class="sub" id="summary"></span>
+  </header>
+
+  <main class="split">
+    <section class="pane">
+      <div class="pane-head">
+        <h2><span class="dot block"></span>차단 목록 <small id="blockCount">(0)</small></h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-site">사이트</th>
+              <th class="col-sel">선택자</th>
+              <th class="col-act"></th>
+            </tr>
+          </thead>
+          <tbody id="blockBody"></tbody>
+        </table>
+        <div class="empty" id="blockEmpty" hidden>등록된 차단 규칙이 없어요.</div>
+      </div>
+    </section>
+
+    <section class="pane">
+      <div class="pane-head">
+        <h2><span class="dot allow"></span>제외 목록 <small id="allowCount">(0)</small></h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-site">사이트</th>
+              <th class="col-sel">선택자</th>
+              <th class="col-act"></th>
+            </tr>
+          </thead>
+          <tbody id="allowBody"></tbody>
+        </table>
+        <div class="empty" id="allowEmpty" hidden>등록된 제외 규칙이 없어요.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="actions">
+      <button id="importBtn">Import (CSV)</button>
+      <button id="exportBtn" class="primary">Export (CSV)</button>
+      <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+    </div>
+    <span id="msg"></span>
+  </footer>
+
+  <script src="../src/defaults.js"></script>
+  <script src="rules.js"></script>
+</body>
+</html>

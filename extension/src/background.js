@@ -10,14 +10,18 @@ function updateBadge(tabId) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg || typeof msg !== 'object') return;
   const tabId = sender.tab?.id;
   if (msg.type === 'count' && tabId != null) {
+    const count = (typeof msg.count === 'number' && Number.isFinite(msg.count) && msg.count >= 0)
+      ? Math.floor(msg.count)
+      : 0;
     if (!tabCounts.has(tabId)) tabCounts.set(tabId, new Map());
-    tabCounts.get(tabId).set(sender.frameId, msg.count);
+    tabCounts.get(tabId).set(sender.frameId, count);
     updateBadge(tabId);
   } else if (msg.type === 'pickerDone' && tabId != null) {
     chrome.tabs.sendMessage(tabId, { type: 'stopPicker' }).catch(() => {});
-  } else if (msg.type === 'getCount') {
+  } else if (msg.type === 'getCount' && typeof msg.tabId === 'number') {
     const frames = tabCounts.get(msg.tabId);
     let total = 0;
     if (frames) for (const c of frames.values()) total += c;

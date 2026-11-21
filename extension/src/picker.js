@@ -116,7 +116,7 @@
 
   function makeRoot() {
     const host = document.createElement('chh-picker');
-    const root = host.attachShadow({ mode: 'open' });
+    const root = host.attachShadow({ mode: 'closed' });
     root.innerHTML = `<style>${CSS_TEXT}</style><div class="box" hidden></div><div class="tag" hidden></div>`;
     document.documentElement.appendChild(host);
     return { host, root };
@@ -188,6 +188,7 @@
   function onClick(e) {
     if (!state || ourNode(e.target)) return;
     swallow(e);
+    if (!e.isTrusted) return;
     if (!state.locked && state.cur) lock();
   }
 
@@ -206,7 +207,7 @@
   }
 
   function onKey(e) {
-    if (!state) return;
+    if (!state || !e.isTrusted) return;
     const typing = e.composedPath()[0]?.localName === 'input';
     const k = e.key;
     if (k === 'Escape') { swallow(e); stop(true); return; }
@@ -257,6 +258,7 @@
       </div>
       <div class="muted note" style="margin-top:8px"></div>`;
     panel.addEventListener('click', (e) => {
+      if (!e.isTrusted) return;
       const a = e.target.closest('button')?.dataset.a;
       if (a === 'save') save();
       else if (a === 'up') goUp();
@@ -266,7 +268,12 @@
       else if (a === 'mode') toggleMode();
     });
     const input = panel.querySelector('input.sel');
-    input.addEventListener('input', () => { state.selector = input.value.trim(); state.edited = true; updateMatches(); });
+    input.addEventListener('input', (e) => {
+      if (!e.isTrusted) return;
+      state.selector = input.value.trim();
+      state.edited = true;
+      updateMatches();
+    });
     state.root.appendChild(panel);
     renderPanelText();
     refreshPanel();
@@ -317,6 +324,7 @@
     bar.innerHTML = `<span>${MODES[state.mode].bar}</span><span class="muted"><kbd>↑</kbd> 상위 · <kbd>Tab</kbd> 모드 · <kbd>Esc</kbd> 취소</span>
       <button data-a="mode">⇄ ${MODES[state.mode].other}</button><button data-a="cancel">취소</button>`;
     bar.addEventListener('click', (e) => {
+      if (!e.isTrusted) return;
       const a = e.target.closest('button')?.dataset.a;
       if (a === 'cancel') stop(true);
       else if (a === 'mode') toggleMode();

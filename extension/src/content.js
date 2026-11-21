@@ -9,6 +9,8 @@
   const COUNT_GENERIC = '[class*="reply_num"],[class*="replyNum"],[class*="reply_cnt"],[class*="replyCnt"],[class*="cmt_cnt"],[class*="cmt_num"],[class*="cmtNum"],[class*="comment_count"],[class*="commentCount"],[class*="comment-count"],[class*="comments-count"],[class*="CommentCount"]';
 
   const DEFAULTS = self.CHH_DEFAULTS;
+  const MAX_RULES_PER_HOST = 50;
+  const MAX_SELECTOR_LEN = 500;
 
   let settings = { ...DEFAULTS };
   let showAll = false; // "잠깐 보기"
@@ -24,7 +26,7 @@
     return out;
   }
   const SUFFIXES = hostSuffixes(HOST);
-  const matchHost = (list) => list.some((h) => SUFFIXES.includes(h));
+  const matchHost = (list) => Array.isArray(list) && list.some((h) => SUFFIXES.includes(h));
 
   function siteSelectors() {
     return SUFFIXES.map((s) => RULES.sites[s]).filter(Boolean).join(', ');
@@ -33,10 +35,12 @@
     return [COUNT_GENERIC, ...SUFFIXES.map((s) => RULES.countSelectors[s]).filter(Boolean)].join(', ');
   }
   function userSelectors() {
-    return SUFFIXES.flatMap((s) => settings.userRules[s] || []);
+    const map = settings.userRules || {};
+    return SUFFIXES.flatMap((s) => (Array.isArray(map[s]) ? map[s].slice(0, MAX_RULES_PER_HOST) : []));
   }
   function allowSelectors() {
-    return SUFFIXES.flatMap((s) => settings.userAllow[s] || []);
+    const map = settings.userAllow || {};
+    return SUFFIXES.flatMap((s) => (Array.isArray(map[s]) ? map[s].slice(0, MAX_RULES_PER_HOST) : []));
   }
   function splitSelectors(str) {
     // 쉼표로 나누되 괄호 안의 쉼표는 유지
@@ -50,8 +54,11 @@
     if (buf.trim()) out.push(buf.trim());
     return out;
   }
-  // 선택자 하나하나를 검사해 잘못된 것은 버립니다(:has() 안에 잘못된 선택자가 들어가면 규칙 전체가 무시되기 때문).
-  const validSel = (s) => { try { document.createDocumentFragment().querySelector(s); return true; } catch { return false; } };
+  // 선택자 길이와 문법을 검사해 잘못된 것은 버립니다.
+  const validSel = (s) => {
+    if (typeof s !== 'string' || !s.trim() || s.length > MAX_SELECTOR_LEN) return false;
+    try { document.createDocumentFragment().querySelector(s); return true; } catch { return false; }
+  };
 
   function qsa(sel) {
     try { return [...document.querySelectorAll(sel)]; } catch { return []; }
@@ -96,7 +103,7 @@
 
   // ---------- 표시/접기 ----------
   function isAllowed(el) {
-    const allows = allowSelectors();
+    const allows = allowSelectors().filter(validSel);
     return allows.some((s) => { try { return el.matches(s) || !!el.closest(s) || !!el.querySelector(s); } catch { return false; } });
   }
 
@@ -122,7 +129,7 @@
     if (placeholderFor(el) || !el.parentNode) return;
     const kind = el.getAttribute('data-chh') || 'rule';
     const ph = document.createElement('chh-ph');
-    const root = ph.attachShadow({ mode: 'open' });
+    const root = ph.attachShadow({ mode: 'closed' });
     root.innerHTML = `<style>
       :host{all:initial;display:block;margin:8px 0}
       .w{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;border:1px dashed #bbb;border-radius:8px;
@@ -134,6 +141,7 @@
     <div class="w"><span>💬 댓글이 숨겨져 있어요</span><button data-a="show">보기</button>
     ${kind === 'auto' ? '<button data-a="notc">여기는 댓글 아님</button><span class="s">자동 감지</span>' : ''}</div>`;
     root.addEventListener('click', (e) => {
+      if (!e.isTrusted) return;
       const a = e.target.closest('button')?.dataset.a;
       if (a === 'show') {
         if (el.hasAttribute('data-chh-show')) { el.removeAttribute('data-chh-show'); e.target.textContent = '보기'; }
@@ -161,9 +169,14 @@
   const KEY = { hide: 'userRules', allow: 'userAllow' };
 
   async function addRule(mode, host, selector) {
+    if (!validSel(selector)) return;
     const key = KEY[mode];
     const data = await chrome.storage.sync.get({ [key]: {} });
-    const list = new Set(data[key][host] || []);
+    const list = new Set(Array.isArray(data[key][host]) ? data[key][host] : []);
+    if (list.size >= MAX_RULES_PER_HOST && !list.has(selector)) {
+      toast(`사이트당 최대 ${MAX_RULES_PER_HOST}개까지만 저장할 수 있어요`, selector, () => {});
+      return;
+    }
     list.add(selector);
     data[key][host] = [...list];
     await chrome.storage.sync.set({ [key]: data[key] });
@@ -173,7 +186,7 @@
   async function removeRule(mode, host, selector) {
     const key = KEY[mode];
     const data = await chrome.storage.sync.get({ [key]: {} });
-    data[key][host] = (data[key][host] || []).filter((s) => s !== selector);
+    data[key][host] = (Array.isArray(data[key][host]) ? data[key][host] : []).filter((s) => s !== selector);
     if (!data[key][host].length) delete data[key][host];
     await chrome.storage.sync.set({ [key]: data[key] });
   }
@@ -181,7 +194,7 @@
   function toast(text, selector, undo) {
     document.querySelectorAll('chh-toast').forEach((t) => t.remove());
     const host = document.createElement('chh-toast');
-    const root = host.attachShadow({ mode: 'open' });
+    const root = host.attachShadow({ mode: 'closed' });
     root.innerHTML = `<style>
       :host{all:initial}
       .t{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483647;display:flex;gap:10px;align-items:center;
@@ -193,7 +206,11 @@
     </style><div class="t"><span></span><code></code><button>되돌리기</button></div>`;
     root.querySelector('span').textContent = text;
     root.querySelector('code').textContent = selector;
-    root.querySelector('button').addEventListener('click', () => { undo(); host.remove(); });
+    root.querySelector('button').addEventListener('click', (e) => {
+      if (!e.isTrusted) return;
+      undo();
+      host.remove();
+    });
     document.documentElement.appendChild(host);
     setTimeout(() => host.remove(), 7000);
   }

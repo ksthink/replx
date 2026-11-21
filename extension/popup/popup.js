@@ -64,7 +64,6 @@ async function render() {
   $('siteOn').disabled = !supported || excluded;
   $('pick').disabled = !supported || !settings.enabled;
   $('pickAllow').disabled = !supported || !settings.enabled;
-  $('peek').disabled = !supported;
 
   renderList($('rules'), $('rulesBox'), settings.userRules, 'userRules');
   renderList($('allows'), $('allowBox'), settings.userAllow, 'userAllow');
@@ -76,10 +75,8 @@ async function render() {
     $('status').textContent = '페이지를 새로고침하면 적용돼요.';
     return;
   }
-  $('peek').textContent = state.showAll ? '다시 숨기기' : '잠깐 보기';
   if (excluded) $('status').textContent = '제외 사이트예요 (전체 설정에서 바꿀 수 있어요)';
   else if (!state.active && !state.showAll) $('status').textContent = '꺼져 있어요';
-  else if (state.showAll) $('status').textContent = '잠깐 보는 중이에요';
   else if (!total) $('status').textContent = '숨긴 댓글 영역이 없어요';
   else {
     const c = state.counts;
@@ -97,7 +94,6 @@ async function init() {
   [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   try { host = new URL(tab.url).hostname; } catch { host = ''; }
   if (!host) {
-    // URL을 못 받으면 페이지 안의 스크립트에게 물어봅니다.
     const st = await chrome.tabs.sendMessage(tab.id, { type: 'getState' }, { frameId: 0 }).catch(() => null);
     if (st?.host) { host = st.host; tab = { ...tab, url: `https://${host}/` }; }
   }
@@ -113,7 +109,15 @@ async function init() {
     await save({ disabledSites: [...set] });
     render();
   };
-  $('peek').onclick = async () => { await send({ type: 'toggleShow' }); setTimeout(render, 100); };
+  $('openRules').onclick = () => {
+    chrome.windows.create({
+      url: chrome.runtime.getURL('popup/rules.html'),
+      type: 'popup',
+      width: 860,
+      height: 600,
+    });
+    window.close();
+  };
   $('pick').onclick = async () => { await send({ type: 'startPicker', mode: 'hide' }); window.close(); };
   $('pickAllow').onclick = async () => { await send({ type: 'startPicker', mode: 'allow' }); window.close(); };
   $('openOptions').onclick = (e) => { e.preventDefault(); chrome.runtime.openOptionsPage(); };
