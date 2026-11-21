@@ -40,6 +40,18 @@
   .b-wrap .core img { width: 150px; height: 150px; border-radius: 34px; filter: drop-shadow(0 22px 30px rgba(224,58,38,.35)); }
   .b-wrap .core h1 { font-size: 190px; line-height: 1; letter-spacing: -0.065em; font-weight: 900; margin-top: 8px; }
   .b-wrap .core p { font-size: 64px; font-weight: 900; letter-spacing: -0.04em; margin-top: 4px; background: #e03a26; color: #fff; padding: 4px 26px 10px; border-radius: 18px; }
+
+  /* C: 사진 + 큰 문구 (사진은 out/thumb-photo.jpg, 인물은 오른쪽에 있다고 가정) */
+  .c { background: #111318; color: #fff; }
+  .c .photo { position: absolute; inset: 0; background: center right / cover no-repeat; }
+  .c .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14,15,19,.92) 0%, rgba(14,15,19,.78) 34%, rgba(14,15,19,.15) 62%, rgba(14,15,19,0) 80%); }
+  .c h1 { position: absolute; left: 64px; top: 96px; font-size: 120px; line-height: 1.04; letter-spacing: -0.06em; font-weight: 900; }
+  .c h1 em { font-style: normal; color: #ff5a43; }
+  .c .bubs { position: absolute; left: 64px; top: 404px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+  .c .bub { position: relative; padding: 10px 20px; border-radius: 20px 20px 20px 5px; background: rgba(255,255,255,.95); color: #4a505c; font-size: 26px; font-weight: 700; }
+  .c .bub::after { content: ""; position: absolute; left: 12px; right: 12px; top: 50%; height: 6px; margin-top: -3px; background: #e03a26; border-radius: 3px; transform: rotate(-2deg); }
+  .c .brand { position: absolute; left: 66px; bottom: 50px; display: flex; align-items: center; gap: 16px; font-size: 50px; font-weight: 900; letter-spacing: -1.4px; }
+  .c .brand img { width: 66px; height: 66px; border-radius: 16px; }
 </style>
 </head>
 <body>
@@ -71,9 +83,21 @@
     </div>
   </div>
 
+
+  <div id="c" class="c" hidden style="position:absolute;inset:0">
+    <div class="photo" id="photo"></div>
+    <div class="shade"></div>
+    <h1>댓글 스트레스<br><em>벗어나</em> 웹서핑</h1>
+    <div class="bubs">
+      <div class="bub">ㅋㅋ 이게 맞냐</div>
+      <div class="bub">근데 그거 아님</div>
+    </div>
+    <div class="brand"><img src="../extension/icons/128.png" alt="">Replx</div>
+  </div>
   <script>
     const v = new URLSearchParams(location.search).get('v') || 'a';
     document.getElementById(v).hidden = false;
+    document.getElementById('photo').style.backgroundImage = `url("${new URLSearchParams(location.search).get('img') || 'out/thumb-photo.jpg'}")`;
     window.ready = document.fonts.ready.then(() => true);
   </script>
 </body>
