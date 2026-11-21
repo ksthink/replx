@@ -18,7 +18,7 @@ Chrome 웹 스토어 개발자 대시보드에 그대로 붙여 넣을 수 있�
 | 스토어 아이콘 | `extension/icons/128.png` (128×128) |
 | 스크린샷(1280×800) | `docs/store/screenshot-1.png` ~ `screenshot-5.png` |
 | 작은 홍보 타일(440×280) | `docs/store/promo-small.png` |
-| 홈페이지 URL | https://github.com/ksthink/replx |
+| 홈페이지 URL | https://ksthink.github.io/replx/ |
 | 지원 URL | https://github.com/ksthink/replx/issues |
 | 연락처 이메일 | ksthink@metaphr.dev (계정 탭에서 인증 필요) |
 
@@ -35,7 +35,7 @@ Replx는 커뮤니티, 뉴스, 유튜브 등 웹사이트의 댓글 영역을 �
 
 [개인정보 보호]
 Replx는 규칙 처리와 댓글 탐지를 모두 브라우저 안에서만 수행합니다. 방문 기록이나 웹페이지 데이터를 수집하지 않으며, 외부 서버로 전송하지도 않습니다.
-개인정보처리방침: https://github.com/ksthink/replx/blob/main/PRIVACY.md
+개인정보처리방침: https://ksthink.github.io/replx/privacy/
 
 [문의]
 ksthink@metaphr.dev
@@ -56,7 +56,7 @@ Replx neatly hides comment sections on websites such as communities, news sites,
 
 [Privacy]
 Replx processes all rules and detection inside your browser only. It does not collect your browsing history or web page data, and it never sends anything to an external server.
-Privacy policy: https://github.com/ksthink/replx/blob/main/PRIVACY.en.md
+Privacy policy: https://ksthink.github.io/replx/privacy/en/
 
 [Contact]
 ksthink@metaphr.dev
@@ -101,8 +101,10 @@ Replx hides comment sections on web pages. It finds comment areas using built-in
 ### 개인정보처리방침 URL
 
 ```
-https://github.com/ksthink/replx/blob/main/PRIVACY.md
+https://ksthink.github.io/replx/privacy/
 ```
+
+영어 버전은 https://ksthink.github.io/replx/privacy/en/ 이에요. 두 페이지 모두 `PRIVACY.md`, `PRIVACY.en.md`에서 Pages 워크플로가 자동으로 만들어요.
 
 ## 계정(Account) 탭
 

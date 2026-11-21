@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://ksthink.github.io/replx/"><b>소개 페이지</b></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/ksthink/replx/actions/workflows/ci.yml"><img src="https://github.com/ksthink/replx/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
@@ -298,6 +302,7 @@ extension/              크롬에 불러오는 확장 본체
   data/                 규칙 원본 (upstream-sites.json, kr-sites.json)
 tools/build-rules.mjs   data/*.json → src/rules.js
 tests/                  E2E 테스트, 스크린샷 스크립트, 테스트용 페이지
+site/                   소개 사이트(GitHub Pages). tools/build_site.py가 _site/로 빌드
 docs/screenshots/       README 스크린샷 (Actions가 자동 갱신)
 ```
 
@@ -325,6 +330,7 @@ python tests/store_assets.py # docs/store (웹 스토어용 1280×800 스크린�
 |---|---|---|
 | **CI** | main 푸시, PR | 규칙 파일 최신 여부·문법 검사 → E2E 테스트 → 확장 폴더를 아티팩트로 업로드 |
 | **Screenshots** | `extension/`, `tests/` 변경 푸시, 수동 실행 | README 스크린샷과 스토어 이미지를 다시 만들고, 바뀌었으면 자동으로 커밋 |
+| **Pages** | `site/`, `PRIVACY*.md`, `docs/store/` 변경 푸시 | 소개 사이트와 개인정보처리방침 페이지를 만들어 GitHub Pages(https://ksthink.github.io/replx/)에 배포 |
 | **Release** | `v*` 태그 푸시 | manifest 버전 확인 → zip을 만들어 GitHub 릴리스에 업로드 |
 
 새 버전을 배포하려면 `extension/manifest.json`의 `version`을 올리고 같은 버전의 태그를 푸시합니다.

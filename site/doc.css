@@ -1,0 +1,12 @@
+/* 개인정보처리방침처럼 글로 된 페이지 */
+.doc { max-width: 780px; padding-top: 24px; }
+.doc h1 { font-size: 40px; letter-spacing: -1.2px; line-height: 1.2; margin: 24px 0 12px; }
+.doc h2 { font-size: 24px; letter-spacing: -0.4px; margin: 44px 0 10px; }
+.doc p, .doc li { color: var(--ink-2); }
+.doc ul { padding-left: 1.2em; }
+.doc table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 12px 0 8px; display: block; overflow-x: auto; }
+.doc th, .doc td { text-align: left; vertical-align: top; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); }
+.doc th { color: var(--ink); font-weight: 800; border-bottom: 2px solid var(--ink); }
+.doc td:first-child { font-weight: 700; color: var(--ink); white-space: nowrap; }
+.doc a { color: var(--red); font-weight: 600; }
+.foot { max-width: 780px; }

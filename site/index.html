@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replx — 댓글 없이 읽기</title>
+  <meta name="description" content="커뮤니티, 뉴스, 유튜브의 댓글 영역을 숨겨 본문에만 집중하게 돕는 Chrome 확장 프로그램입니다.">
+  <meta property="og:title" content="Replx — 댓글 없이 읽기">
+  <meta property="og:description" content="커뮤니티, 뉴스, 유튜브의 댓글 영역을 숨겨 본문에만 집중하게 돕는 Chrome 확장 프로그램입니다.">
+  <meta property="og:image" content="assets/store/promo-small.png">
+  <link rel="icon" href="assets/icon-128.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./"><img src="assets/icon-128.png" alt="" width="32" height="32"><span>Replx</span></a>
+    <nav>
+      <a href="#how">숨기는 방식</a>
+      <a href="#install">설치</a>
+      <a href="privacy/">개인정보</a>
+      <a href="https://github.com/ksthink/replx">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>댓글 없이<br>읽기.</h1>
+        <p class="lead">Replx는 커뮤니티, 뉴스, 유튜브의 댓글 영역을 숨겨 본문에만 집중하게 돕는 Chrome 확장 프로그램이에요. 못 숨긴 곳은 클릭해서 숨기고, 잘못 숨겨진 곳은 클릭해서 되살려요.</p>
+        <div class="cta">
+          <a class="btn primary" id="getBtn" href="#install">Chrome에 추가</a>
+          <a class="btn" href="https://github.com/ksthink/replx">소스 보기</a>
+        </div>
+        <p class="note">무료이고, 외부로 보내는 데이터가 없어요.</p>
+      </div>
+
+      <div class="demo" aria-label="Replx 체험">
+        <div class="demo-bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="url">news.example.com/article/2026</span>
+          <label class="switch" title="Replx 켜기/끄기">
+            <input type="checkbox" id="demoOn" checked>
+            <span class="track"><img src="assets/icon-128.png" alt=""></span>
+            <span class="sr">Replx 켜기</span>
+          </label>
+        </div>
+        <div class="page" id="demoPage">
+          <h2 class="d-title">도서관 야간 개방, 이번 겨울부터 주 3회로</h2>
+          <p class="d-meta">사회 · 2026년 11월 21일</p>
+          <p class="d-body">구립도서관 열람실이 12월부터 화·목·토요일 밤 10시까지 문을 연다. 시험 기간에는 매일 연장 운영도 검토하고 있다.</p>
+          <p class="d-body">도서관 측은 늦게 퇴근하는 직장인과 수험생의 요청이 많았다고 설명했다.</p>
+
+          <div class="comments" id="comments">
+            <div class="c-head">댓글 <b>128</b></div>
+            <div class="c-item"><b>책읽는밤</b><span>와 퇴근하고 갈 수 있겠다</span></div>
+            <div class="c-item"><b>ㅇㅇ</b><span>세금 이런 데 써야지</span></div>
+            <div class="c-item"><b>지나가던사람</b><span>근데 주차는 되나요? 저번에 갔다가…</span></div>
+            <div class="c-item"><b>익명</b><span>다른 동네는 왜 안 해줌</span></div>
+          </div>
+          <div class="folded" id="folded" hidden>
+            <span>댓글이 숨겨져 있어요</span>
+            <button type="button" id="peekBtn">보기</button>
+          </div>
+        </div>
+        <div class="demo-controls">
+          <div class="seg" role="radiogroup" aria-label="숨김 방식">
+            <button type="button" role="radio" aria-checked="true" data-mode="hide">완전히 숨김</button>
+            <button type="button" role="radio" aria-checked="false" data-mode="collapse">접어두기</button>
+          </div>
+          <p class="hint" id="demoHint">Replx를 끄면 댓글이 다시 보여요. 꺼진 상태에서 댓글을 누르면 그 영역만 직접 숨겨져요.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <h2>세 겹으로 숨겨요</h2>
+      <p class="section-lead">자동으로 다 찾기 어려운 만큼, 빗나간 곳은 사용자가 바로잡을 수 있게 만들었어요.</p>
+      <div class="layers">
+        <article class="layer">
+          <h3>기본 규칙</h3>
+          <p>국내외 주요 커뮤니티·뉴스·영상 사이트 133곳의 댓글 영역 규칙이 들어 있어요. 페이지가 그려지기 전에 숨겨서 깜빡임이 없어요.</p>
+        </article>
+        <article class="layer">
+          <h3>자동 탐지</h3>
+          <p>규칙이 없는 사이트에서는 "댓글 12" 같은 이름표, 입력창, 작성자·시간이 반복되는 목록을 보고 댓글 영역을 찾아요. 기사 본문은 건드리지 않아요.</p>
+        </article>
+        <article class="layer pick">
+          <h3>직접 지정</h3>
+          <p><span class="chip hide">숨길 영역</span> 못 숨긴 댓글을 클릭하면 그 사이트의 규칙이 돼요.</p>
+          <p><span class="chip allow">제외할 영역</span> 잘못 숨겨진 곳을 클릭하면 다시 보이고, 앞으로도 숨기지 않아요.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="shots" id="shots">
+      <h2>실제 화면</h2>
+      <div class="tabs" role="tablist" aria-label="화면 고르기">
+        <button role="tab" aria-selected="true" data-i="1">숨기기 전후</button>
+        <button role="tab" aria-selected="false" data-i="2">숨길 영역 지정</button>
+        <button role="tab" aria-selected="false" data-i="3">제외할 영역 지정</button>
+        <button role="tab" aria-selected="false" data-i="4">팝업과 접어두기</button>
+        <button role="tab" aria-selected="false" data-i="5">규칙 목록</button>
+      </div>
+      <figure class="viewer">
+        <img id="shotImg" src="assets/store/screenshot-1.png" width="1280" height="800" alt="Replx를 켜기 전과 후의 커뮤니티 글 화면">
+      </figure>
+    </section>
+
+    <section class="install" id="install">
+      <h2>설치</h2>
+      <div id="storeReady" hidden>
+        <p class="section-lead">Chrome 웹 스토어에서 한 번에 설치할 수 있어요.</p>
+        <a class="btn primary" id="storeBtn" href="#">Chrome 웹 스토어에서 설치</a>
+      </div>
+      <div id="storePending">
+        <p class="section-lead">Chrome 웹 스토어 등록을 준비하고 있어요. 그 전까지는 아래 순서로 직접 설치할 수 있어요.</p>
+        <ol class="steps">
+          <li><b>파일 받기</b><span><a href="https://github.com/ksthink/replx/releases">Releases</a>에서 최신 zip을 받아 압축을 풀어요.</span></li>
+          <li><b>개발자 모드 켜기</b><span>주소창에 <code>chrome://extensions</code>를 입력하고 오른쪽 위의 개발자 모드를 켜요.</span></li>
+          <li><b>불러오기</b><span>"압축해제된 확장 프로그램을 로드합니다"를 누르고 압축을 푼 폴더를 골라요.</span></li>
+          <li><b>고정하기</b><span>퍼즐 아이콘에서 Replx를 툴바에 고정하고, 열려 있던 탭은 새로고침해요.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="privacy" id="privacy">
+      <h2>개인정보</h2>
+      <p>Replx는 규칙 처리와 댓글 탐지를 모두 브라우저 안에서만 해요. 방문 기록이나 웹페이지 내용을 수집하지 않고, 외부 서버와 통신하지 않아요. 설정과 직접 만든 규칙만 Chrome 저장소에 남아요.</p>
+      <p class="links"><a href="privacy/">개인정보처리방침</a><a href="privacy/en/">Privacy Policy (English)</a></p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>문의 <a href="mailto:ksthink@metaphr.dev">ksthink@metaphr.dev</a></p>
+    <p>Replx는 YouTube 등 각 사이트의 운영사와 관련이 없는 독립 프로젝트예요. MIT 라이선스.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
