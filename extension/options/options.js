@@ -1,14 +1,9 @@
 const DEFAULTS = self.CHH_DEFAULTS;
 const $ = (id) => document.getElementById(id);
 
-const MAX_RULES_PER_HOST = 50;
-const MAX_SELECTOR_LEN = 500;
+const STORE = self.CHH_STORE;
+const { MAX_RULES_PER_HOST, isValidSelector, normalizeHost } = STORE;
 const VALID_MODES = new Set(['hide', 'collapse']);
-
-const isValidSelector = (sel) => {
-  if (typeof sel !== 'string' || !sel.trim() || sel.length > MAX_SELECTOR_LEN) return false;
-  try { document.createDocumentFragment().querySelector(sel); return true; } catch { return false; }
-};
 
 const mapToText = (map) => Object.entries(map || {}).flatMap(([h, sels]) => (Array.isArray(sels) ? sels : []).map((s) => `${h} | ${s}`)).join('\n');
 const listToText = (list) => (Array.isArray(list) ? list : []).join('\n');
@@ -18,9 +13,9 @@ function textToMap(text, label) {
   text.split('\n').map((l) => l.trim()).filter(Boolean).forEach((line, i) => {
     const idx = line.indexOf('|');
     if (idx < 0) throw new Error(`${label} ${i + 1}번째 줄: "사이트 | 선택자" 형식이 아니에요`);
-    const host = line.slice(0, idx).trim().toLowerCase();
+    const host = normalizeHost(line.slice(0, idx));
     const sel = line.slice(idx + 1).trim();
-    if (!host) throw new Error(`${label} ${i + 1}번째 줄: 사이트 주소가 비어 있어요`);
+    if (!host) throw new Error(`${label} ${i + 1}번째 줄: 사이트 주소가 비어 있거나 올바르지 않아요`);
     if (!isValidSelector(sel)) throw new Error(`${label} ${i + 1}번째 줄: 올바르지 않거나 너무 긴 선택자예요 (${sel})`);
     const list = (map[host] ||= []);
     if (list.length >= MAX_RULES_PER_HOST) throw new Error(`${label} (${host}): 사이트당 최대 ${MAX_RULES_PER_HOST}개까지만 저장할 수 있어요`);
@@ -34,7 +29,7 @@ function sanitizeRuleMap(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('규칙 형식이 올바르지 않아요.');
   const clean = {};
   for (const [host, sels] of Object.entries(raw)) {
-    const h = String(host).trim().toLowerCase();
+    const h = normalizeHost(host);
     if (!h || !Array.isArray(sels)) throw new Error(`잘못된 호스트 규칙: ${host}`);
     const valid = [...new Set(sels.filter((s) => isValidSelector(s)))].slice(0, MAX_RULES_PER_HOST);
     if (valid.length) clean[h] = valid;
@@ -79,32 +74,42 @@ function msg(text, err = false) {
   if (!err) setTimeout(() => ($('msg').textContent = ''), 2500);
 }
 
+// 규칙 지도는 사이트별 항목으로 나눠 저장하고(src/store.js), 나머지 설정은 그대로 저장합니다.
+async function saveAll(patch) {
+  const { userRules, userAllow, ...rest } = patch;
+  if (userRules) await STORE.replaceMap('userRules', userRules);
+  if (userAllow) await STORE.replaceMap('userAllow', userAllow);
+  if (Object.keys(rest).length) await chrome.storage.sync.set(rest);
+}
+
 async function load() {
   const s = await chrome.storage.sync.get(DEFAULTS);
-  $('userRules').value = mapToText(s.userRules);
-  $('userAllow').value = mapToText(s.userAllow);
+  const maps = await STORE.loadMaps();
+  $('userRules').value = mapToText(maps.userRules);
+  $('userAllow').value = mapToText(maps.userAllow);
   $('excludedSites').value = listToText(s.excludedSites);
   $('disabledSites').value = listToText(s.disabledSites);
 }
 
 $('save').onclick = async () => {
   try {
-    await chrome.storage.sync.set({
+    await saveAll({
       userRules: textToMap($('userRules').value, '숨김 규칙'),
       userAllow: textToMap($('userAllow').value, '제외 규칙'),
       excludedSites: textToList($('excludedSites').value),
       disabledSites: textToList($('disabledSites').value),
     });
+    await load();
     msg('저장했어요');
   } catch (e) { msg(e.message, true); }
 };
 
 $('export').onclick = async () => {
-  const s = await chrome.storage.sync.get(DEFAULTS);
+  const s = { ...(await chrome.storage.sync.get(DEFAULTS)), ...(await STORE.loadMaps()) };
   const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'comment-hider-settings.json';
+  a.download = 'replx-settings.json';
   a.click();
 };
 
@@ -115,7 +120,7 @@ $('file').onchange = async (e) => {
     if (!file) return;
     const data = JSON.parse(await file.text());
     const patch = validateImport(data);
-    await chrome.storage.sync.set(patch);
+    await saveAll(patch);
     await load();
     msg('가져왔어요');
   } catch (err) {

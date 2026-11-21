@@ -1,3 +1,5 @@
+importScripts('defaults.js', 'store.js');
+
 // 서비스 워커: 배지 숫자, 단축키, 우클릭 메뉴, 피커 종료 브로드캐스트
 const tabCounts = new Map(); // tabId -> Map(frameId -> count)
 
@@ -34,7 +36,12 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
 });
 chrome.tabs.onRemoved.addListener((tabId) => tabCounts.delete(tabId));
 
+// 예전 형식(userRules/userAllow 한 항목)의 규칙을 사이트별 항목으로 옮깁니다.
+const migrate = () => self.CHH_STORE.loadMaps().catch((e) => console.warn('[Replx] migrate', e));
+chrome.runtime.onStartup.addListener(migrate);
+
 chrome.runtime.onInstalled.addListener(() => {
+  migrate();
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({ id: 'chh-pick', title: 'Replx: 이 부분 숨기기 지정', contexts: ['all'] });
     chrome.contextMenus.create({ id: 'chh-allow', title: 'Replx: 숨긴 곳 중 제외할 영역 고르기', contexts: ['all'] });

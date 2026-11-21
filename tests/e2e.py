@@ -4,7 +4,7 @@ import sys
 
 from playwright.async_api import async_playwright
 
-from harness import BASE, extension_browser, is_hidden, send_to_active_tab
+from harness import BASE, extension_browser, get_rules, is_hidden, send_to_active_tab, set_rules
 
 failures = []
 
@@ -62,8 +62,8 @@ async def main():
             check("picker selector", sel == "div.zz", sel)
             await page.locator("chh-picker button[data-a=save]").click()
             await page.wait_for_timeout(1500)
-            stored = await sw.evaluate("() => chrome.storage.sync.get('userRules')")
-            check("picker stored", stored.get("userRules", {}).get("localhost") == ["div.zz"], str(stored))
+            stored = await get_rules(sw, "hide", "localhost")
+            check("picker stored", stored == ["div.zz"], str(stored))
             got = {s: await is_hidden(page, s) for s in (".zz", ".other", "h1")}
             check("picker hides", got == {".zz": True, ".other": False, "h1": False}, str(got))
             check("picker closed", await page.locator("chh-picker").count() == 0)
@@ -109,25 +109,26 @@ async def main():
             check("allow: selector", sel == "#cmtArea", sel)
             await page.keyboard.press("Enter")
             await page.wait_for_timeout(1500)
-            allow = (await sw.evaluate("() => chrome.storage.sync.get('userAllow')"))["userAllow"].get("localhost", [])
+            allow = await get_rules(sw, "allow", "localhost")
             check("allow: stored", "#cmtArea" in allow, str(allow))
             check("allow: stays visible", await is_hidden(page, "#cmtArea") is False)
             check("allow: toast shown", await page.locator("chh-toast").count() == 1)
             await page.locator("chh-toast button").click()
             await page.wait_for_timeout(1500)
-            allow = (await sw.evaluate("() => chrome.storage.sync.get('userAllow')"))["userAllow"].get("localhost", [])
+            allow = await get_rules(sw, "allow", "localhost")
             check("allow: undo removes rule", "#cmtArea" not in allow, str(allow))
             check("allow: hidden again after undo", await is_hidden(page, "#cmtArea") is True)
 
             # 제외 규칙이 숨김 규칙의 바깥(조상)도 막는지, 잘못된 선택자가 섞여도 나머지가 동작하는지
-            await sw.evaluate("""() => chrome.storage.sync.set({
-                userRules: { localhost: ['div.zz', 'div[', '.other'] },
-                userAllow: { localhost: ['section.q7z', 'div[', '.yy'] } })""")
+            # (동기화로 들어온 값이 깨져 있는 경우를 흉내 내려고 저장소에 직접 넣음)
+            await set_rules(sw, "hide", "localhost", ["div.zz", "div[", ".other"])
+            await set_rules(sw, "allow", "localhost", ["section.q7z", "div[", ".yy"])
             await page.goto(BASE + "picker.html")
             await page.wait_for_timeout(1200)
             got = {s: await is_hidden(page, s) for s in (".zz", ".yy", ".other")}
             check("allow: guards ancestor + invalid selectors ignored", got == {".zz": False, ".yy": False, ".other": True}, str(got))
-            await sw.evaluate("() => chrome.storage.sync.set({ userRules: {}, userAllow: { localhost: ['section.q7z'] } })")
+            await set_rules(sw, "hide", "localhost", [])
+            await set_rules(sw, "allow", "localhost", ["section.q7z"])
 
             # 숨김 피커에서 선택자 직접 편집
             await page.goto(BASE + "demo-picker.html")
@@ -148,6 +149,53 @@ async def main():
             await page.wait_for_timeout(1500)
             got = [await page.locator(".yy p").nth(i).evaluate("e => !e.checkVisibility()") for i in range(3)]
             check("edit: only edited target hidden", got == [False, True, False], str(got))
+
+            # 사이트 저장 공간(8KB)이 차면 저장하지 않고 오류 알림을 보여 줌(되돌리기 버튼 없음)
+            await set_rules(sw, "hide", "localhost", [f".filler-{i}-" + "x" * 170 for i in range(42)])
+            await page.goto(BASE + "demo-picker.html")
+            await page.wait_for_timeout(1200)
+            await send_to_active_tab(sw, {"type": "startPicker", "mode": "hide"})
+            await page.wait_for_timeout(300)
+            box = await page.locator(".other").bounding_box()
+            await page.mouse.move(box["x"] + 5, box["y"] + 5)
+            await page.mouse.click(box["x"] + 5, box["y"] + 5)
+            await page.locator("chh-picker input.sel").fill(".other" + ":not(.never)" * 30)
+            await page.locator("chh-picker input.sel").press("Enter")
+            await page.wait_for_timeout(1200)
+            text = await page.locator("chh-toast span").text_content()
+            check("quota: error toast", "저장하지 못했어요" in text and "8KB" in text, text)
+            check("quota: no undo on error", await page.locator("chh-toast button").count() == 0)
+            check("quota: nothing saved", len(await get_rules(sw, "hide", "localhost")) == 42)
+            check("quota: page unchanged", await is_hidden(page, ".other") is False)
+            await set_rules(sw, "hide", "localhost", [])
+
+            # 예전 형식(userRules 한 항목)은 자동으로 사이트별 항목으로 옮겨지고 그대로 적용됨
+            await sw.evaluate("() => chrome.storage.sync.set({ userRules: { localhost: ['.other'] }, userAllow: { 'example.org': ['.keep'] } })")
+            await page.goto(BASE + "demo-picker.html")
+            await page.wait_for_timeout(1500)
+            check("legacy: still applied", await is_hidden(page, ".other") is True)
+            legacy = await sw.evaluate("() => chrome.storage.sync.get(['userRules', 'userAllow'])")
+            check("legacy: migrated", legacy == {} and await get_rules(sw, "hide", "localhost") == [".other"]
+                  and await get_rules(sw, "allow", "example.org") == [".keep"], str(legacy))
+            await set_rules(sw, "hide", "localhost", [])
+            await set_rules(sw, "allow", "example.org", [])
+
+            # 제외·차단 목록 창: CSV 가져오기(주소 정리, 잘못된 줄 건너뛰기)
+            rules_page = await ctx.new_page()
+            await rules_page.goto(sw.url.replace("src/background.js", "popup/rules.html"))
+            await rules_page.wait_for_timeout(500)
+            csv = "type,site,selector\nblock,https://News.Example.com:8080/a/b,.c1\nallow,news.example.com,\"div.a, div.b\"\nblock,ok.com,div[\nfoo,ok.com,.x\n"
+            await rules_page.locator("#csvFile").set_input_files(files=[{"name": "r.csv", "mimeType": "text/csv", "buffer": csv.encode()}])
+            await rules_page.wait_for_timeout(800)
+            msg_text = await rules_page.locator("#msg").text_content()
+            got = (await get_rules(sw, "hide", "news.example.com"), await get_rules(sw, "allow", "news.example.com"), await get_rules(sw, "hide", "ok.com"))
+            check("csv import", got == ([".c1"], ["div.a, div.b"], []) and "2개 추가" in msg_text and "2개 건너뜀" in msg_text, f"{got} {msg_text}")
+            allow_rows = await rules_page.locator("#allowBody td.site").all_text_contents()
+            check("csv table", await rules_page.locator("#blockBody tr").count() == 1 and "news.example.com" in allow_rows, str(allow_rows))
+            await rules_page.locator("#blockBody button.del").click()
+            await rules_page.wait_for_timeout(500)
+            check("csv delete", await get_rules(sw, "hide", "news.example.com") == [] and await rules_page.locator("#blockBody tr").count() == 0)
+            await rules_page.close()
 
             check("no page errors", not errors, str(errors[:3]))
 

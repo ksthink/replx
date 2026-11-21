@@ -1,15 +1,9 @@
-const DEFAULTS = self.CHH_DEFAULTS;
 const $ = (id) => document.getElementById(id);
 
-const MAX_RULES_PER_HOST = 50;
-const MAX_SELECTOR_LEN = 500;
+const STORE = self.CHH_STORE;
+const { MAX_RULES_PER_HOST, isValidSelector, normalizeHost } = STORE;
 
-let settings = { ...DEFAULTS };
-
-const isValidSelector = (sel) => {
-  if (typeof sel !== 'string' || !sel.trim() || sel.length > MAX_SELECTOR_LEN) return false;
-  try { document.createDocumentFragment().querySelector(sel); return true; } catch { return false; }
-};
+let settings = { userRules: {}, userAllow: {} };
 
 function showMsg(text, err = false) {
   const el = $('msg');
@@ -54,12 +48,12 @@ function renderTable(tbody, emptyEl, countEl, map, key) {
     del.textContent = '✕';
     del.title = '삭제';
     del.onclick = async () => {
-      const next = { ...(settings[key] || {}) };
-      next[site] = (next[site] || []).filter((s) => s !== sel);
-      if (!next[site].length) delete next[site];
-      settings[key] = next;
-      await chrome.storage.sync.set({ [key]: next });
-      render();
+      try {
+        await STORE.removeRule(key, site, sel);
+        await load();
+      } catch (err) {
+        showMsg(`삭제하지 못했어요: ${err.message}`, true);
+      }
     };
     tdAct.appendChild(del);
 
@@ -157,7 +151,7 @@ $('csvFile').onchange = async (e) => {
       const cols = rows[i];
       if (cols.length < 3) { skipped++; continue; }
       const rawType = cols[0].trim().toLowerCase();
-      const site = cols[1].trim().toLowerCase();
+      const site = normalizeHost(cols[1]); // https://, 경로, 포트를 떼고 도메인만 남김
       const sel = cols[2].trim();
 
       let target = null;
@@ -172,10 +166,9 @@ $('csvFile').onchange = async (e) => {
       added++;
     }
 
-    settings.userRules = nextRules;
-    settings.userAllow = nextAllow;
-    await chrome.storage.sync.set({ userRules: nextRules, userAllow: nextAllow });
-    render();
+    await STORE.replaceMap('userRules', nextRules);
+    await STORE.replaceMap('userAllow', nextAllow);
+    await load();
     showMsg(`가져오기 완료: ${added}개 추가${skipped ? ` (${skipped}개 건너뜀)` : ''}`);
   } catch (err) {
     showMsg(err?.message || 'CSV 가져오기에 실패했어요.', true);
@@ -185,15 +178,12 @@ $('csvFile').onchange = async (e) => {
 };
 
 async function load() {
-  settings = { ...DEFAULTS, ...(await chrome.storage.sync.get(DEFAULTS)) };
+  settings = await STORE.loadMaps();
   render();
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== 'sync') return;
-  if (changes.userRules) settings.userRules = changes.userRules.newValue ?? {};
-  if (changes.userAllow) settings.userAllow = changes.userAllow.newValue ?? {};
-  render();
+  if (area === 'sync' && STORE.touchesRules(changes)) load();
 });
 
 load();

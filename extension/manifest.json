@@ -38,6 +38,7 @@
       ],
       "js": [
         "src/defaults.js",
+        "src/store.js",
         "src/rules.js",
         "src/detector.js",
         "src/picker.js",

@@ -10,6 +10,12 @@ function suffixes(h) {
   return (p.length > 1 ? p.slice(0, -1) : p).map((_, i) => p.slice(i).join('.'));
 }
 
+async function reloadRules() {
+  const maps = await self.CHH_STORE.loadMaps();
+  settings.userRules = maps.userRules;
+  settings.userAllow = maps.userAllow;
+}
+
 async function save(patch) {
   Object.assign(settings, patch);
   await chrome.storage.sync.set(patch);
@@ -40,10 +46,13 @@ function renderList(ul, box, map, key) {
     del.textContent = '✕';
     del.title = '삭제';
     del.onclick = async () => {
-      const next = { ...settings[key] };
-      next[h] = (next[h] || []).filter((s) => s !== sel);
-      if (!next[h].length) delete next[h];
-      await save({ [key]: next });
+      try {
+        await self.CHH_STORE.removeRule(key, h, sel);
+        await reloadRules();
+      } catch (e) {
+        $('status').textContent = `삭제하지 못했어요: ${e.message}`;
+        return;
+      }
       render();
     };
     li.append(code, see, del);
@@ -76,7 +85,8 @@ async function render() {
     return;
   }
   if (excluded) $('status').textContent = '제외 사이트예요 (전체 설정에서 바꿀 수 있어요)';
-  else if (!state.active && !state.showAll) $('status').textContent = '꺼져 있어요';
+  else if (state.showAll) $('status').textContent = '잠깐 보는 중이에요 (Alt+Shift+C로 다시 숨기기)';
+  else if (!state.active) $('status').textContent = '꺼져 있어요';
   else if (!total) $('status').textContent = '숨긴 댓글 영역이 없어요';
   else {
     const c = state.counts;
@@ -98,6 +108,7 @@ async function init() {
     if (st?.host) { host = st.host; tab = { ...tab, url: `https://${host}/` }; }
   }
   settings = { ...DEFAULTS, ...(await chrome.storage.sync.get(DEFAULTS)) };
+  await reloadRules();
 
   $('enabled').onchange = (e) => save({ enabled: e.target.checked }).then(render);
   $('mode').onchange = (e) => save({ mode: e.target.value });

@@ -9,10 +9,10 @@
   const COUNT_GENERIC = '[class*="reply_num"],[class*="replyNum"],[class*="reply_cnt"],[class*="replyCnt"],[class*="cmt_cnt"],[class*="cmt_num"],[class*="cmtNum"],[class*="comment_count"],[class*="commentCount"],[class*="comment-count"],[class*="comments-count"],[class*="CommentCount"]';
 
   const DEFAULTS = self.CHH_DEFAULTS;
-  const MAX_RULES_PER_HOST = 50;
-  const MAX_SELECTOR_LEN = 500;
+  const STORE = self.CHH_STORE;
+  const { MAX_RULES_PER_HOST } = STORE;
 
-  let settings = { ...DEFAULTS };
+  let settings = { ...DEFAULTS, userRules: {}, userAllow: {} };
   let showAll = false; // "잠깐 보기"
   let revealing = false; // 제외 영역 고르는 중: 숨긴 곳을 점선으로 드러냄
   let style = null;
@@ -54,11 +54,8 @@
     if (buf.trim()) out.push(buf.trim());
     return out;
   }
-  // 선택자 길이와 문법을 검사해 잘못된 것은 버립니다.
-  const validSel = (s) => {
-    if (typeof s !== 'string' || !s.trim() || s.length > MAX_SELECTOR_LEN) return false;
-    try { document.createDocumentFragment().querySelector(s); return true; } catch { return false; }
-  };
+  // 선택자 길이와 문법을 검사해 잘못된 것은 버립니다(:has() 안에 잘못된 선택자가 들어가면 규칙 전체가 무시되기 때문).
+  const validSel = STORE.isValidSelector;
 
   function qsa(sel) {
     try { return [...document.querySelectorAll(sel)]; } catch { return []; }
@@ -166,32 +163,23 @@
   }
 
   // ---------- 규칙 저장/되돌리기 ----------
-  const KEY = { hide: 'userRules', allow: 'userAllow' };
-
   async function addRule(mode, host, selector) {
-    if (!validSel(selector)) return;
-    const key = KEY[mode];
-    const data = await chrome.storage.sync.get({ [key]: {} });
-    const list = new Set(Array.isArray(data[key][host]) ? data[key][host] : []);
-    if (list.size >= MAX_RULES_PER_HOST && !list.has(selector)) {
-      toast(`사이트당 최대 ${MAX_RULES_PER_HOST}개까지만 저장할 수 있어요`, selector, () => {});
-      return;
+    try {
+      const added = await STORE.addRule(mode, host, selector);
+      const label = mode === 'hide' ? '숨김 규칙' : '제외 규칙';
+      if (!added) { toast(`이미 저장된 ${label}이에요`, selector); return; }
+      toast(`${label}을 저장했어요`, selector, () => removeRule(mode, host, selector));
+    } catch (e) {
+      toast(`저장하지 못했어요: ${e.message}`, selector, null, true);
     }
-    list.add(selector);
-    data[key][host] = [...list];
-    await chrome.storage.sync.set({ [key]: data[key] });
-    toast(mode === 'hide' ? '숨김 규칙을 저장했어요' : '제외 규칙을 저장했어요', selector, () => removeRule(mode, host, selector));
   }
 
   async function removeRule(mode, host, selector) {
-    const key = KEY[mode];
-    const data = await chrome.storage.sync.get({ [key]: {} });
-    data[key][host] = (Array.isArray(data[key][host]) ? data[key][host] : []).filter((s) => s !== selector);
-    if (!data[key][host].length) delete data[key][host];
-    await chrome.storage.sync.set({ [key]: data[key] });
+    try { await STORE.removeRule(mode, host, selector); } catch (e) { toast(`되돌리지 못했어요: ${e.message}`, selector, null, true); }
   }
 
-  function toast(text, selector, undo) {
+  // undo가 없으면 "되돌리기" 버튼을 숨기고, error면 빨간 테두리로 오래 보여 줍니다.
+  function toast(text, selector, undo = null, error = false) {
     document.querySelectorAll('chh-toast').forEach((t) => t.remove());
     const host = document.createElement('chh-toast');
     const root = host.attachShadow({ mode: 'closed' });
@@ -203,16 +191,19 @@
       code{font:11.5px ui-monospace,Menlo,Consolas,monospace;color:#ffd591;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       button{all:unset;cursor:pointer;padding:4px 9px;border-radius:6px;background:#3a3a3a;font-size:12px}
       button:hover{background:#4a4a4a}
+      .t.err{box-shadow:0 0 0 2px #ff4d4f,0 6px 24px rgba(0,0,0,.3)}
     </style><div class="t"><span></span><code></code><button>되돌리기</button></div>`;
+    if (error) root.querySelector('.t').classList.add('err');
+    if (!undo) root.querySelector('button').remove();
     root.querySelector('span').textContent = text;
     root.querySelector('code').textContent = selector;
-    root.querySelector('button').addEventListener('click', (e) => {
+    root.querySelector('button')?.addEventListener('click', (e) => {
       if (!e.isTrusted) return;
       undo();
       host.remove();
     });
     document.documentElement.appendChild(host);
-    setTimeout(() => host.remove(), 7000);
+    setTimeout(() => host.remove(), error ? 12000 : 7000);
   }
 
   // 팝업의 규칙 목록에서 👁를 누르면 그 규칙에 해당하는 곳을 잠깐 드러내 깜빡여 보여 줍니다.
@@ -355,17 +346,27 @@
     }
   });
 
-  chrome.storage.onChanged.addListener((changes, area) => {
+  async function loadRules() {
+    const maps = await STORE.loadMaps();
+    settings.userRules = maps.userRules;
+    settings.userAllow = maps.userAllow;
+  }
+
+  chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'sync') return;
-    for (const k of Object.keys(changes)) if (k in DEFAULTS) settings[k] = changes[k].newValue ?? DEFAULTS[k];
-    rescanFromScratch();
+    let touched = false;
+    for (const k of Object.keys(changes)) {
+      if (k in DEFAULTS) { settings[k] = changes[k].newValue ?? DEFAULTS[k]; touched = true; }
+    }
+    if (STORE.touchesRules(changes)) { await loadRules(); touched = true; }
+    if (touched) rescanFromScratch();
   });
 
   // ---------- 시작 ----------
   // 설정을 읽기 전에도 기본값(켜짐)으로 규칙 CSS를 먼저 넣어 깜빡임을 막습니다.
   applyCss();
-  chrome.storage.sync.get(DEFAULTS).then((s) => {
-    settings = { ...DEFAULTS, ...s };
+  Promise.all([chrome.storage.sync.get(DEFAULTS), STORE.loadMaps()]).then(([s, maps]) => {
+    settings = { ...DEFAULTS, ...s, userRules: maps.userRules, userAllow: maps.userAllow };
     applyCss();
     if (document.body) schedule();
   });
