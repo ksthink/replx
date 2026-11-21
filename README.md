@@ -353,10 +353,8 @@ python video/mix.py --audio-dir 음원폴더   # 배경음악·효과음을 장�
 
 Replx는 어떤 정보도 외부로 보내지 않아요. 자세한 내용은 [개인정보처리방침](PRIVACY.md)([English](PRIVACY.en.md))을 보세요. 문의: [ksthink@metaphr.dev](mailto:ksthink@metaphr.dev)
 
-Chrome 웹 스토어 등록에 쓰는 설명 문구, 권한 사유, 스토어 이미지는 [docs/STORE_LISTING.md](docs/STORE_LISTING.md)에 정리되어 있어요.
-
 ---
 
 ## 라이선스
 
-MIT. 사이트 규칙 일부는 [grantwinney/hide-comments-everywhere](https://github.com/grantwinney/hide-comments-everywhere)(MIT, `extension/data/UPSTREAM_LICENSE`)에서 가져왔어요.
+MIT
