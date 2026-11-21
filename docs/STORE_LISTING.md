@@ -18,6 +18,7 @@ Chrome 웹 스토어 개발자 대시보드에 그대로 붙여 넣을 수 있�
 | 스토어 아이콘 | `extension/icons/128.png` (128×128) |
 | 스크린샷(1280×800) | `docs/store/screenshot-1.png` ~ `screenshot-5.png` |
 | 작은 홍보 타일(440×280) | `docs/store/promo-small.png` |
+| 마키 홍보 타일(1400×560, 선택) | `docs/store/promo-marquee.png` |
 | 홈페이지 URL | https://ksthink.github.io/replx/ |
 | 지원 URL | https://github.com/ksthink/replx/issues |
 | 연락처 이메일 | ksthink@metaphr.dev (계정 탭에서 인증 필요) |

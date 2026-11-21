@@ -73,6 +73,26 @@ PROMO_HTML = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><sty
 </body></html>"""
 
 
+def marquee_html(raw: Path) -> str:
+    return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>
+  * {{ box-sizing: border-box; margin: 0; }}
+  body {{ width: 1400px; height: 560px; overflow: hidden; font-family: {FONT}; color: #fff;
+    background: linear-gradient(150deg, {RED} 0%, #c22a17 100%); position: relative; }}
+  .copy {{ position: absolute; left: 90px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }}
+  .copy img {{ width: 96px; height: 96px; border-radius: 22px; filter: drop-shadow(0 10px 20px rgba(0,0,0,.25)); }}
+  .copy h1 {{ font-size: 96px; line-height: 1; letter-spacing: -0.05em; margin: 20px 0 14px; }}
+  .copy p {{ font-size: 32px; font-weight: 700; opacity: .95; letter-spacing: -0.02em; }}
+  .shot {{ position: absolute; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.45); }}
+  .shot img {{ display: block; }}
+  .s1 {{ right: 300px; top: 70px; transform: rotate(-3deg); }}
+  .s2 {{ right: 40px; top: 150px; transform: rotate(3deg); }}
+</style></head><body>
+  <div class="copy"><img src="{data_uri(ICON)}"><h1>Replx</h1><p>댓글은 숨기고, 글에만 집중</p></div>
+  <div class="shot s1"><img src="{data_uri(raw / 'after.png')}" width="560"></div>
+  <div class="shot s2"><img src="{data_uri(raw / 'allow.png')}" width="520"></div>
+</body></html>"""
+
+
 async def main():
     OUT.mkdir(parents=True, exist_ok=True)
     raw = Path(tempfile.mkdtemp(prefix="replx-store-"))
@@ -169,6 +189,20 @@ async def main():
             path = OUT / "promo-small.png"
             await canvas.screenshot(path=str(path))
             print("saved", path.relative_to(ROOT))
+
+            await canvas.set_viewport_size({"width": 1400, "height": 560})
+            await canvas.set_content(marquee_html(raw))
+            await canvas.wait_for_timeout(300)
+            path = OUT / "promo-marquee.png"
+            await canvas.screenshot(path=str(path))
+            print("saved", path.relative_to(ROOT))
+
+    # 웹 스토어는 알파 채널 없는 24비트 PNG만 받으므로 RGB로 다시 저장합니다.
+    from PIL import Image
+    for png in OUT.glob("*.png"):
+        im = Image.open(png)
+        if im.mode != "RGB":
+            im.convert("RGB").save(png)
 
 
 asyncio.run(main())
