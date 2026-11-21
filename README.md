@@ -343,14 +343,9 @@ python video/mix.py --audio-dir 음원폴더   # 배경음악·효과음을 장�
 | **CI** | main 푸시, PR | 규칙 파일 최신 여부·문법 검사 → E2E 테스트 → 확장 폴더를 아티팩트로 업로드 |
 | **Screenshots** | `extension/`, `tests/` 변경 푸시, 수동 실행 | README 스크린샷과 스토어 이미지를 다시 만들고, 바뀌었으면 자동으로 커밋 |
 | **Pages** | `site/`, `PRIVACY*.md`, `docs/store/` 변경 푸시 | 소개 사이트와 개인정보처리방침 페이지를 만들어 GitHub Pages(https://ksthink.github.io/replx/)에 배포 |
-| **Release** | `v*` 태그 푸시 | manifest 버전 확인 → `replx-vX.Y.Z.zip`과 `replx.zip`(늘 같은 이름)을 만들어 GitHub 릴리스에 업로드 |
+| **Release** | `extension/manifest.json` 변경 푸시, 수동 실행 | 그 버전의 릴리스가 없으면 태그와 함께 릴리스를 만들고 `replx-vX.Y.Z.zip`, `replx.zip`(늘 같은 이름)을 올림 |
 
-새 버전을 배포하려면 `extension/manifest.json`의 `version`을 올리고 같은 버전의 태그를 푸시합니다.
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
+새 버전을 배포하려면 `extension/manifest.json`의 `version`만 올려서 main에 푸시하면 돼요. 태그는 Release 워크플로가 만들어요. 최신 버전은 늘 [releases/latest/download/replx.zip](https://github.com/ksthink/replx/releases/latest/download/replx.zip)으로 받을 수 있어요.
 
 ---
 

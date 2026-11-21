@@ -1,12 +1,19 @@
 name: Release
 
-# v0.1.0 같은 태그를 푸시하면 확장 zip을 만들어 GitHub 릴리스에 올립니다.
+# extension/manifest.json의 version을 올려 main에 푸시하면, 그 버전의 GitHub 릴리스(태그 포함)를 만듭니다.
+# 이미 같은 버전의 릴리스가 있으면 아무것도 하지 않아요. Actions 탭에서 직접 실행할 수도 있어요.
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: ['extension/manifest.json']
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -18,22 +25,30 @@ jobs:
         with:
           node-version: 22
 
-      - name: 태그와 manifest 버전 일치 확인
+      - name: 버전 확인
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(node -p "require('./extension/manifest.json').version")
-          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "태그($GITHUB_REF_NAME)와 manifest 버전(v$VERSION)이 다릅니다."; exit 1
+          TAG="v$VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "$TAG 릴리스가 이미 있어서 건너뜁니다."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
           node tools/build-rules.mjs --check
 
       # replx-vX.Y.Z.zip(버전 표시)과 replx.zip(항상 같은 이름) 두 개를 올립니다.
       # replx.zip은 https://github.com/ksthink/replx/releases/latest/download/replx.zip 으로 늘 최신 버전을 받게 해 줘요.
       - name: 압축 및 릴리스
+        if: steps.v.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
         run: |
-          cd extension && zip -qr "../replx-$GITHUB_REF_NAME.zip" . && cd ..
-          cp "replx-$GITHUB_REF_NAME.zip" replx.zip
+          cd extension && zip -qr "../replx-$TAG.zip" . && cd ..
+          cp "replx-$TAG.zip" replx.zip
           cat > notes.md <<'NOTES'
           ## 설치
           1. 아래 **replx.zip**을 받아 압축을 풉니다.
@@ -43,5 +58,5 @@ jobs:
 
           업데이트할 때는 새 zip으로 폴더를 덮어쓴 뒤 `chrome://extensions`에서 Replx의 새로고침(⟳)을 누르세요. 규칙과 설정은 그대로 남아요.
           NOTES
-          gh release create "$GITHUB_REF_NAME" "replx-$GITHUB_REF_NAME.zip" replx.zip \
-            --title "Replx $GITHUB_REF_NAME" --notes-file notes.md --generate-notes --latest
+          gh release create "$TAG" "replx-$TAG.zip" replx.zip --target "$GITHUB_SHA" \
+            --title "Replx $TAG" --notes-file notes.md --generate-notes --latest

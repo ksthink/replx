@@ -4,7 +4,7 @@ Chrome 웹 스토어 개발자 대시보드에 그대로 붙여 넣을 수 있�
 
 ## 패키지
 
-- 업로드 파일: `v*` 태그를 푸시하면 [Release](../.github/workflows/release.yml) 워크플로가 만드는 `replx-vX.Y.Z.zip`. `extension/` 폴더를 그대로 압축한 파일이에요.
+- 업로드 파일: manifest 버전을 올려 main에 푸시하면 [Release](../.github/workflows/release.yml) 워크플로가 만드는 `replx-vX.Y.Z.zip`([최신 릴리스](https://github.com/ksthink/replx/releases/latest)). `extension/` 폴더를 그대로 압축한 파일이에요.
 - 업로드 전 확인: `manifest.json`의 `version`이 이전에 올린 버전보다 커야 해요.
 
 ## 스토어 등록정보(Store listing)
