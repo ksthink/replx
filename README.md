@@ -324,6 +324,18 @@ python tests/screenshots.py  # docs/screenshots 다시 생성
 python tests/store_assets.py # docs/store (웹 스토어용 1280×800 스크린샷, 440×280 홍보 타일) 다시 생성
 ```
 
+### 소개 영상
+
+`video/`에는 유튜브용 30초 소개 영상(1920×1080)의 소스가 있어요. 장면은 HTML·CSS·JS로 짜여 있고(`index.html`, `scenes.js`), 브라우저로 열면 미리보기로 재생돼요.
+
+```bash
+python video/render.py                     # 장면별로 촬영해 video/out/replx-intro.mp4 생성(무음)
+python video/render.py --frames 2 11 17    # 특정 시각만 JPEG로 확인
+python video/mix.py --audio-dir 음원폴더   # 배경음악·효과음을 장면 타이밍에 맞춰 입힘
+```
+
+`mix.py`가 쓰는 음원 이름은 `music`, `pop`, `strike`, `chime`, `click`, `swoosh`, `blip`(.mp3)이에요.
+
 ### GitHub Actions
 
 | 워크플로 | 언제 | 하는 일 |

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Replx 소개 영상 (30초)</title>
+<!--
+  유튜브 소개 영상의 장면 페이지(1920×1080).
+  render(t)가 t초의 화면을 그립니다. 실시간 재생 없이 render.py가 1/30초씩 넘기며 촬영합니다.
+  브라우저에서 열면 미리보기로 자동 재생되고, 스페이스로 멈추고 ←/→로 이동할 수 있어요.
+-->
+<style>
+  @font-face { font-family: "Pretendard"; src: url("fonts/PretendardVariable.woff2") format("woff2-variations"); font-weight: 45 920; }
+  :root {
+    --ink: #1a1d24; --ink-2: #4a505c; --muted: #7a808c; --paper: #fff; --mist: #f1f3f6; --line: #e2e5ea;
+    --red: #e03a26; --green: #16a34a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--mist); }
+  body { font-family: "Pretendard", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; word-break: keep-all; }
+  .abs { position: absolute; }
+
+  /* 인트로 말풍선 */
+  #bubbles { position: absolute; inset: 0; }
+  .bubble {
+    position: absolute; padding: 16px 26px; border-radius: 28px 28px 28px 6px; background: #fff; color: var(--ink-2);
+    font-size: 32px; font-weight: 600; white-space: nowrap; box-shadow: 0 10px 30px -14px rgba(26,29,36,.3);
+  }
+  .bubble.hot { background: #fde6e2; color: #8e2a1c; }
+  .bubble i { position: absolute; left: 18px; right: 18px; top: 50%; height: 4px; margin-top: -2px; background: var(--red); border-radius: 2px; transform-origin: left; }
+
+  /* 로고 */
+  #logo { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  #logo img { width: 200px; height: 200px; border-radius: 46px; filter: drop-shadow(0 30px 40px rgba(224,58,38,.3)); }
+  #logo h1 { font-size: 230px; line-height: 1; letter-spacing: -0.06em; font-weight: 900; margin: 22px 0 24px; }
+  #logo p { font-size: 54px; font-weight: 700; color: var(--ink-2); margin: 0; letter-spacing: -0.02em; }
+
+  /* 상단 브랜드 */
+  #brand { left: 120px; top: 70px; display: flex; align-items: center; gap: 16px; font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
+  #brand img { width: 52px; height: 52px; border-radius: 12px; }
+
+  /* 자막(장면 제목) */
+  #captions { left: 120px; top: 0; bottom: 0; width: 720px; }
+  .cap { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+  .cap h2 { font-size: 104px; line-height: 1.06; letter-spacing: -0.05em; font-weight: 900; margin: 0 0 30px; }
+  .cap p { font-size: 38px; line-height: 1.45; color: var(--ink-2); margin: 0; font-weight: 500; }
+  .cap .step { display: inline-block; font-size: 30px; font-weight: 800; color: #fff; background: var(--red); border-radius: 999px; padding: 4px 20px; margin-bottom: 28px; }
+  .cap .step.green { background: var(--green); }
+
+  /* 진행 막대 */
+  #progress { left: 120px; bottom: 80px; display: flex; gap: 10px; }
+  #progress i { width: 56px; height: 8px; border-radius: 4px; background: #d3d7de; position: relative; overflow: hidden; }
+  #progress i b { position: absolute; inset: 0; background: var(--red); transform-origin: left; }
+
+  /* 기기 모형 (사이트와 같은 구조, 1.62배) */
+  #deviceHost { left: 900px; top: 120px; width: 907px; }
+  .device { position: relative; width: 560px; background: #e3e6eb; border-radius: 18px; padding: 10px; box-shadow: 0 40px 80px -40px rgba(26,29,36,.45); transform-origin: top left; }
+  .d-bar { display: flex; align-items: center; gap: 10px; padding: 4px 6px 10px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: #c9ced6; }
+  .url { flex: 1; font-size: 12.5px; color: var(--muted); background: #fff; border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+  .ext { position: relative; display: block; width: 26px; height: 26px; }
+  .ext img { width: 26px; height: 26px; border-radius: 6px; display: block; }
+  .ext b { position: absolute; right: -7px; bottom: -6px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; line-height: 17px; text-align: center; }
+  .d-page { background: #fff; border-radius: 12px; padding: 22px 24px 18px; height: 456px; overflow: hidden; }
+  .a-title { font-size: 20px; letter-spacing: -0.4px; margin: 0 0 2px; line-height: 1.35; }
+  .a-meta { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
+  .a-body { font-size: 14.5px; color: var(--ink-2); margin: 0 0 12px; line-height: 1.6; }
+  .blk { position: relative; overflow: hidden; border-radius: 8px; }
+  .blk.reveal { outline: 2px dashed var(--red); outline-offset: -2px; background-color: rgba(224,58,38,.05); }
+  .blk.allow { outline: 2px solid var(--green); outline-offset: -2px; background-color: rgba(22,163,74,.07); }
+  .related { display: grid; gap: 6px; padding: 10px 12px; background: var(--mist); margin-bottom: 10px; }
+  .rel { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+  .rel i { width: 44px; height: 30px; border-radius: 5px; background: #d9dde3; flex: none; }
+  .react { padding: 10px 12px; border: 1px solid var(--line); margin-bottom: 10px; }
+  .react-head { font-size: 12.5px; font-weight: 800; color: var(--muted); margin-bottom: 4px; }
+  .react-row { display: flex; gap: 14px; font-size: 13.5px; }
+  .comments { border-top: 1px solid var(--line); padding: 8px 6px 0; border-radius: 0; }
+  .c-head { font-weight: 800; font-size: 13.5px; margin-bottom: 4px; }
+  .c-head b { color: var(--red); }
+  .c-item { display: flex; gap: 10px; font-size: 13.5px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .c-item span { color: var(--ink-2); }
+  .fold { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1.5px dashed #c4c9d1; font-size: 13.5px; color: var(--ink-2); }
+  .fold em { font-style: normal; font-weight: 800; font-size: 12.5px; background: var(--mist); padding: 2px 10px; border-radius: 6px; color: var(--ink); }
+  .pickbox { position: absolute; border: 2px solid var(--red); background: rgba(224,58,38,.1); border-radius: 8px; }
+  .pickbox.green { border-color: var(--green); background: rgba(22,163,74,.12); }
+  .cursor { position: absolute; left: 0; top: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); transform-origin: 4px 2px; }
+  .ripple { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 3px solid var(--red); }
+  .toast { z-index: 5; position: absolute; left: 50%; bottom: 22px; white-space: nowrap; background: var(--ink); color: #fff; font-size: 13px; padding: 8px 14px; border-radius: 10px; }
+  .rules { position: absolute; left: 22px; right: 22px; bottom: 18px; background: #fff; border-radius: 12px; box-shadow: 0 24px 50px -20px rgba(26,29,36,.5); padding: 14px 16px; }
+  .r-head { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 8px; }
+  .r-head img { width: 20px; height: 20px; border-radius: 5px; }
+  .r-cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+  .r-cols h4 { font-size: 12.5px; margin: 0 0 4px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot.red { background: var(--red); } .dot.green { background: var(--green); }
+  .r-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 5px 0; border-top: 1px solid var(--line); }
+  .r-row span { font-weight: 700; white-space: nowrap; }
+  .r-row code { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--ink-2); }
+  .r-foot { display: flex; gap: 6px; margin-top: 10px; }
+  .r-btn { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 7px; border: 1px solid var(--line); }
+  .r-btn.red { background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* 엔딩 */
+  #end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; }
+  #end img { width: 170px; height: 170px; border-radius: 40px; filter: drop-shadow(0 26px 36px rgba(224,58,38,.3)); }
+  #end h1 { font-size: 180px; line-height: 1; letter-spacing: -0.06em; font-weight: 900; margin: 22px 0 18px; }
+  #end p { font-size: 50px; font-weight: 700; color: var(--ink-2); margin: 0 0 56px; letter-spacing: -0.02em; }
+  #end .pills { display: flex; gap: 18px; }
+  #end .pill { font-size: 34px; font-weight: 700; padding: 16px 34px; border-radius: 999px; border: 2px solid var(--line); }
+  #end .pill.red { background: var(--red); border-color: var(--red); color: #fff; }
+</style>
+</head>
+<body>
+  <div id="bubbles"></div>
+  <div id="logo"><img src="../extension/icons/128.png" alt=""><h1>Replx</h1><p>댓글 없이 읽기.</p></div>
+
+  <div id="brand" class="abs"><img src="../extension/icons/128.png" alt=""><span>Replx</span></div>
+
+  <div id="captions" class="abs">
+    <div class="cap"><span class="step">자동</span><h2>알아서<br>숨겨요</h2><p>댓글 영역을 찾아<br>페이지가 뜨기 전에 숨겨요.</p></div>
+    <div class="cap"><span class="step">숨길 영역</span><h2>놓친 곳은<br>클릭 한 번</h2><p>고른 영역은 그 사이트의<br>규칙이 돼요.</p></div>
+    <div class="cap"><span class="step green">제외할 영역</span><h2>잘못 숨긴 곳은<br>되살리기</h2><p>제외한 영역은<br>다시 숨기지 않아요.</p></div>
+    <div class="cap"><span class="step">접어두기</span><h2>필요할 때만<br>펼쳐 보기</h2><p>완전히 숨기거나,<br>접어 두고 펼쳐 봐요.</p></div>
+    <div class="cap"><span class="step">규칙 목록</span><h2>규칙은<br>한곳에서</h2><p>사이트별 규칙을 보고 지우고,<br>CSV로 옮겨요.</p></div>
+  </div>
+  <div id="progress" class="abs"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+
+  <div id="deviceHost" class="abs">
+    <div class="device" id="device">
+      <div class="d-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">news.example.com/article/2026</span>
+        <span class="ext"><img src="../extension/icons/128.png" alt=""><b id="badge"></b></span>
+      </div>
+      <div class="d-page">
+        <h3 class="a-title">도서관 야간 개방, 이번 겨울부터 주 3회로</h3>
+        <p class="a-meta">2026년 11월 21일</p>
+        <p class="a-body">구립도서관 열람실이 12월부터 화·목·토요일 밤 10시까지 문을 연다. 시험 기간에는 매일 연장 운영도 검토하고 있다.</p>
+        <div class="blk related" id="bRelated">
+          <div class="rel"><i></i><span>동네 도서관 신간 코너 확대</span></div>
+          <div class="rel"><i></i><span>열람실 좌석 예약 앱 출시</span></div>
+        </div>
+        <div class="blk react" id="bReact">
+          <div class="react-head">실시간 반응</div>
+          <div class="react-row"><span>👍 좋아요 312</span><span>😮 놀라워요 41</span><span>😢 슬퍼요 3</span></div>
+        </div>
+        <div class="blk comments" id="bComments">
+          <div class="c-head">댓글 <b>128</b></div>
+          <div class="c-item"><b>책읽는밤</b><span>와 퇴근하고 갈 수 있겠다</span></div>
+          <div class="c-item"><b>ㅇㅇ</b><span>세금 이런 데 써야지</span></div>
+          <div class="c-item"><b>지나가던사람</b><span>근데 주차는 되나요?</span></div>
+        </div>
+        <div class="blk fold" id="bFold"><span>💬 댓글이 숨겨져 있어요</span><em id="foldBtn">보기</em></div>
+      </div>
+      <div class="pickbox" id="pickBox"></div>
+      <div class="ripple" id="ripple"></div>
+      <svg class="cursor" id="cursor" viewBox="0 0 24 24" width="26" height="26"><path d="M4 2l15 9.5-6.6 1.3 3.9 7.6-3 1.5-3.9-7.7L4 19z" fill="#1a1d24" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <div class="toast" id="toast"></div>
+      <div class="rules" id="rules">
+        <div class="r-head"><img src="../extension/icons/128.png" alt=""><b>제외·차단 목록</b></div>
+        <div class="r-cols">
+          <div>
+            <h4><i class="dot red"></i>차단</h4>
+            <div class="r-row"><span>news.example.com</span><code>.comment_view</code></div>
+            <div class="r-row"><span>news.example.com</span><code>.react_box</code></div>
+            <div class="r-row"><span>community.example.kr</span><code>.fdb_lst_wrp</code></div>
+          </div>
+          <div>
+            <h4><i class="dot green"></i>제외</h4>
+            <div class="r-row"><span>news.example.com</span><code>.related</code></div>
+          </div>
+        </div>
+        <div class="r-foot"><span class="r-btn">Import (CSV)</span><span class="r-btn red" id="exportBtn">Export (CSV)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="end">
+    <img src="../extension/icons/128.png" alt="">
+    <h1>Replx</h1>
+    <p>댓글 없이 읽기.</p>
+    <div class="pills"><span class="pill red">Chrome 확장 프로그램</span><span class="pill">ksthink.github.io/replx</span></div>
+  </div>
+
+  <script src="scenes.js"></script>
+</body>
+</html>
