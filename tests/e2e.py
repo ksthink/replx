@@ -197,6 +197,27 @@ async def main():
             check("csv delete", await get_rules(sw, "hide", "news.example.com") == [] and await rules_page.locator("#blockBody tr").count() == 0)
             await rules_page.close()
 
+            # 팝업: activeTab 권한 없이도 현재 사이트와 숨긴 개수를 보여 줌
+            await page.goto(BASE + "community.html")
+            await page.wait_for_timeout(1500)
+            popup = await ctx.new_page()
+            await popup.add_init_script("""
+              const _q = chrome.tabs.query.bind(chrome.tabs);
+              chrome.tabs.query = async () => {
+                const me = await chrome.tabs.getCurrent();
+                const t = (await _q({})).filter((x) => x.id !== me.id).slice(-1);
+                window.__seenUrl = t[0] && t[0].url;
+                return t;
+              };""")
+            await popup.goto(sw.url.replace("src/background.js", "popup/popup.html"))
+            await popup.wait_for_timeout(800)
+            host = await popup.locator("#host").text_content()
+            status = await popup.locator("#status").text_content()
+            seen = await popup.evaluate("window.__seenUrl")
+            check("popup without activeTab", host == "localhost" and "숨겼어요" in status and not (await popup.locator("#pick").is_disabled()),
+                  f"host={host} status={status} tab.url={seen!r}")
+            await popup.close()
+
             check("no page errors", not errors, str(errors[:3]))
 
     if failures:

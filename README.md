@@ -35,6 +35,7 @@
   - [단축키](#단축키)
 - [자주 묻는 질문](#자주-묻는-질문)
 - [개발](#개발)
+- [개인정보](#개인정보)
 - [라이선스](#라이선스)
 
 ---
@@ -277,7 +278,6 @@ allow,news.example.com,.article_body
 **어떤 권한을 쓰나요?**
 - `storage`: 설정 저장
 - `contextMenus`: 우클릭 메뉴
-- `activeTab`: 팝업에서 현재 탭 확인
 - 모든 http/https 페이지의 콘텐츠 스크립트: 댓글을 숨기는 데 필요
 
 ---
@@ -316,6 +316,7 @@ pip install playwright
 python -m playwright install chromium
 python tests/e2e.py          # 확장을 크롬에 올려 탐지·숨김/제외 지정·접기 동작 검증
 python tests/screenshots.py  # docs/screenshots 다시 생성
+python tests/store_assets.py # docs/store (웹 스토어용 1280×800 스크린샷, 440×280 홍보 타일) 다시 생성
 ```
 
 ### GitHub Actions
@@ -323,7 +324,7 @@ python tests/screenshots.py  # docs/screenshots 다시 생성
 | 워크플로 | 언제 | 하는 일 |
 |---|---|---|
 | **CI** | main 푸시, PR | 규칙 파일 최신 여부·문법 검사 → E2E 테스트 → 확장 폴더를 아티팩트로 업로드 |
-| **Screenshots** | `extension/`, `tests/` 변경 푸시, 수동 실행 | 스크린샷을 다시 찍고, 바뀌었으면 자동으로 커밋 |
+| **Screenshots** | `extension/`, `tests/` 변경 푸시, 수동 실행 | README 스크린샷과 스토어 이미지를 다시 만들고, 바뀌었으면 자동으로 커밋 |
 | **Release** | `v*` 태그 푸시 | manifest 버전 확인 → zip을 만들어 GitHub 릴리스에 업로드 |
 
 새 버전을 배포하려면 `extension/manifest.json`의 `version`을 올리고 같은 버전의 태그를 푸시합니다.
@@ -332,6 +333,14 @@ python tests/screenshots.py  # docs/screenshots 다시 생성
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+---
+
+## 개인정보
+
+Replx는 어떤 정보도 외부로 보내지 않아요. 자세한 내용은 [개인정보처리방침](PRIVACY.md)([English](PRIVACY.en.md))을 보세요. 문의: [ksthink@metaphr.dev](mailto:ksthink@metaphr.dev)
+
+Chrome 웹 스토어 등록에 쓰는 설명 문구, 권한 사유, 스토어 이미지는 [docs/STORE_LISTING.md](docs/STORE_LISTING.md)에 정리되어 있어요.
 
 ---
 

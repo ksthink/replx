@@ -12,8 +12,7 @@
   },
   "permissions": [
     "storage",
-    "contextMenus",
-    "activeTab"
+    "contextMenus"
   ],
   "background": {
     "service_worker": "src/background.js"

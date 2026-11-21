@@ -33,7 +33,7 @@ def prepare_extension() -> Path:
 
 
 @asynccontextmanager
-async def extension_browser(playwright, **ctx_kwargs):
+async def extension_browser(playwright, extra_args=(), **ctx_kwargs):
     srv = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(PORT), "-d", str(FIXTURES)],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -43,7 +43,7 @@ async def extension_browser(playwright, **ctx_kwargs):
     ext = prepare_extension()
     launch = dict(
         headless=True,
-        args=[f"--disable-extensions-except={ext}", f"--load-extension={ext}", "--no-sandbox"],
+        args=[f"--disable-extensions-except={ext}", f"--load-extension={ext}", "--no-sandbox", *extra_args],
         **ctx_kwargs,
     )
     # CHROME_PATH가 있으면 그 크롬을, 없으면 Playwright의 Chromium(확장 지원)을 씁니다.

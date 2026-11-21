@@ -34,17 +34,19 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk
 
       - name: 스크린샷 생성
-        run: python tests/screenshots.py
+        run: |
+          python tests/screenshots.py
+          python tests/store_assets.py
 
       - name: 바뀐 스크린샷 커밋·푸시
         run: |
-          if git diff --quiet -- docs/screenshots; then
+          if git diff --quiet -- docs/screenshots docs/store; then
             echo "스크린샷 변경 없음"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/screenshots
+          git add docs/screenshots docs/store
           git commit -m "docs: 스크린샷 자동 갱신"
           git pull --rebase origin main
           git push
