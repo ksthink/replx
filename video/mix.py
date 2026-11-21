@@ -23,20 +23,21 @@ DURATION = 30.0
 # (소리, 시각(초), 볼륨) — 시각은 scenes.js의 타임라인과 맞춘 값
 CUES = []
 CUES += [("pop", 0.05 + i * 0.035, 0.32) for i in range(0, 20, 2)]           # 말풍선 튀어나옴
-CUES += [("strike", t, 0.5) for t in (1.15, 1.32, 1.5)]                       # 빨간 줄로 지움
-CUES += [("swoosh", 1.7, 0.45), ("chime", 1.9, 0.7)]                          # 흩어짐, 로고
-CUES += [("swoosh", 3.1, 0.5)]                                               # 기기 등장
-CUES += [("swoosh", 4.8, 0.3), ("blip", 5.8, 0.5)]                            # 자동 숨김, 배지
-CUES += [("swoosh", 9.0, 0.3), ("click", 11.0, 0.9), ("swoosh", 11.4, 0.3), ("blip", 11.6, 0.5)]   # 숨길 영역
-CUES += [("swoosh", 15.0, 0.3), ("click", 17.2, 0.9), ("blip", 17.5, 0.5), ("swoosh", 18.6, 0.3)]  # 제외할 영역
-CUES += [("click", 22.5, 0.9), ("swoosh", 23.6, 0.4), ("click", 25.35, 0.9), ("blip", 25.45, 0.5)]  # 접어두기·규칙
-CUES += [("swoosh", 26.05, 0.45), ("chime", 26.3, 0.75)]                      # 엔딩
+CUES += [("strike", t, 2.2) for t in (1.15, 1.32, 1.5)]                       # 빨간 줄로 지움
+CUES += [("swoosh", 1.7, 0.65), ("chime", 1.9, 0.7)]                          # 흩어짐, 로고
+CUES += [("swoosh", 3.1, 0.7)]                                               # 기기 등장
+CUES += [("swoosh", 4.8, 0.5), ("blip", 5.8, 0.5)]                            # 자동 숨김, 배지
+CUES += [("swoosh", 9.0, 0.5), ("click", 11.0, 0.9), ("swoosh", 11.4, 0.5), ("blip", 11.6, 0.5)]   # 숨길 영역
+CUES += [("swoosh", 15.0, 0.5), ("click", 17.2, 0.9), ("blip", 17.5, 0.5), ("swoosh", 18.6, 0.5)]  # 제외할 영역
+CUES += [("click", 22.5, 0.9), ("swoosh", 23.6, 0.6), ("click", 25.35, 0.9), ("blip", 25.45, 0.5)]  # 접어두기·규칙
+CUES += [("swoosh", 26.05, 0.65), ("chime", 26.3, 0.75)]                      # 엔딩
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--audio-dir", default=str(HERE / "audio"))
     ap.add_argument("--music-volume", type=float, default=0.55)
+    ap.add_argument("--gain-db", type=float, default=4.5, help="최종 음량 보정(유튜브 기준 약 -14 LUFS에 맞춤)")
     args = ap.parse_args()
     adir = Path(args.audio_dir)
     video = OUT / "video-only.mp4"
@@ -65,7 +66,7 @@ def main():
         ms = int(t * 1000)
         parts.append(f"[{n}{k}]volume={vol},adelay={ms}|{ms}[c{i}]")
         labels.append(f"[c{i}]")
-    parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:normalize=0:duration=first,alimiter=limit=0.95,atrim=0:{DURATION}[mix]")
+    parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:normalize=0:duration=first,volume={args.gain_db}dB,alimiter=limit=0.8,atrim=0:{DURATION}[mix]")
 
     final = OUT / "replx-intro-sound.mp4"
     tmp = OUT / "replx-intro-sound.tmp.mp4"
